@@ -15,8 +15,13 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 
+import { CommonModule } from './common/common.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
+import { RabbitMQModule } from './infrastructure/rabbitmq/rabbitmq.module';
+import { HealthModule } from './modules/health/health.module';
+
 @Module({
-  imports: [AuthModule, UsersModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule],
+  imports: [CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule],
   controllers: [AppController],
   providers: [AppService],
 })
