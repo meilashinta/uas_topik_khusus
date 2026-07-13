@@ -43,7 +43,7 @@ export class HealthController {
         try {
           const isUp = await this.rabbitMQService.ping();
           if (isUp) {
-             return { rabbitmq: { status: 'up' } };
+            return { rabbitmq: { status: 'up' } };
           }
           return { rabbitmq: { status: 'down', error: 'Channel closed' } };
         } catch (error) {

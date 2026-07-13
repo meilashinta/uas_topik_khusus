@@ -17,7 +17,7 @@ Membuat dokumentasi arsitektur teknis dan draft spesifikasi OpenAPI yang menjadi
 
 ### 5.1 Dokumen Arsitektur
 
-- [ ] Buat file `docs/architecture.md` berisi:
+- [x] Buat file `docs/architecture.md` berisi:
   - Diagram arsitektur high-level (Client → Frontend → Backend → DB/Redis/RabbitMQ)
   - Penjelasan pola CQRS yang digunakan (lightweight, bukan full Event Sourcing)
   - Penjelasan event-driven flow via RabbitMQ
@@ -26,18 +26,18 @@ Membuat dokumentasi arsitektur teknis dan draft spesifikasi OpenAPI yang menjadi
 
 ### 5.2 Setup Swagger/OpenAPI di NestJS
 
-- [ ] Konfigurasi `SwaggerModule` di `main.ts`:
+- [x] Konfigurasi `SwaggerModule` di `main.ts`:
   - Title: "HelpDeskPro API"
   - Version: "1.0"
   - Description: dari PRD Bagian 1
   - Bearer Auth scheme (JWT)
   - Tag per modul (Auth, Users, Departments, Categories, Priorities, Tickets, Assignments, Comments, Attachments, Notifications, Dashboard, Reports, Ratings)
-- [ ] Pastikan Swagger UI bisa diakses di `/api/docs`
-- [ ] Export `openapi.json` / `openapi.yaml` otomatis
+- [x] Pastikan Swagger UI bisa diakses di `/api/docs`
+- [x] Export `openapi.json` / `openapi.yaml` otomatis
 
 ### 5.3 Dokumentasi API Standard
 
-- [ ] Dokumentasikan standar response format di `docs/api-standards.md`:
+- [x] Dokumentasikan standar response format di `docs/api-standards.md`:
   - Format sukses & error (sesuai PRD 15.10)
   - Konvensi HTTP status code
   - Konvensi naming endpoint (kebab-case, RESTful)
@@ -46,7 +46,7 @@ Membuat dokumentasi arsitektur teknis dan draft spesifikasi OpenAPI yang menjadi
 
 ### 5.4 Dokumentasi Setup Development
 
-- [ ] Buat/update file `SETUP.md` di root project:
+- [x] Buat/update file `SETUP.md` di root project:
   - Langkah daftar akun Supabase (PostgreSQL)
   - Langkah daftar akun Upstash (Redis)
   - Langkah daftar akun CloudAMQP (RabbitMQ)
@@ -58,7 +58,7 @@ Membuat dokumentasi arsitektur teknis dan draft spesifikasi OpenAPI yang menjadi
 
 ## Definition of Done
 
-- [ ] `docs/architecture.md` lengkap dengan diagram
-- [ ] Swagger UI menampilkan semua tag modul di `/api/docs`
-- [ ] `docs/api-standards.md` lengkap
-- [ ] `SETUP.md` cukup jelas untuk developer baru memulai tanpa bantuan tambahan
+- [x] `docs/architecture.md` lengkap dengan diagram
+- [x] Swagger UI menampilkan semua tag modul di `/api/docs`
+- [x] `docs/api-standards.md` lengkap
+- [x] `SETUP.md` cukup jelas untuk developer baru memulai tanpa bantuan tambahan
