@@ -20,7 +20,7 @@
 | Autentikasi | JWT (Access + Refresh Token) |
 | Cache | Redis |
 | Message Broker | RabbitMQ |
-| Deployment | Manual/Cloud Service (Tanpa Docker) — lihat Bagian 18 |
+| Deployment | Docker / Docker Compose — lihat Bagian 18 |
 | API Style | REST (JSON), OpenAPI 3.0 |
 | Logging | Structured JSON Logging (Pino/Winston) |
 
@@ -31,6 +31,7 @@
 | 1.0 | — | Draft awal PRD | Tim Produk |
 | 2.0 | 10 Jul 2026 | Penambahan ERD, API spec, RBAC matrix, SLA rules, NFR detail, testing & deployment plan | Revisi |
 | 3.0 | 11 Jul 2026 | Menghapus dependensi Docker/Docker Compose; deployment diganti dengan pendekatan manual/cloud service (Supabase, Upstash, CloudAMQP) untuk development, dan opsi native process manager (PM2/systemd) untuk production | Revisi |
+| 4.0 | 14 Jul 2026 | Mengubah deployment menjadi menggunakan Docker dan Docker Compose | Revisi |
 
 ---
 
@@ -80,7 +81,7 @@ HelpDeskPro hadir sebagai solusi terpusat yang mengatasi keenam masalah di atas 
 - CQRS Pattern (pemisahan command & query handler)
 - Event-driven processing dengan RabbitMQ
 - Redis Cache untuk data yang sering diakses (dashboard, sesi)
-- Deployment tanpa kontainer: service dijalankan langsung (Node.js runtime) untuk development, dan menggunakan cloud managed service (database, cache, message broker) atau process manager (PM2/systemd) untuk production
+- Deployment menggunakan kontainer: service, database, cache, dan message broker dijalankan menggunakan Docker dan Docker Compose
 - Audit Trail lengkap untuk seluruh aksi yang mengubah data
 - Automated testing (unit, integration, e2e) dengan target code coverage ≥ 70%
 
@@ -915,34 +916,34 @@ Konvensi HTTP status: `200` OK, `201` Created, `400` Bad Request (validasi), `40
 
 ---
 
-# 18. Deployment & DevOps (Tanpa Docker)
+# 18. Deployment & DevOps (Menggunakan Docker)
 
-> Proyek ini **tidak menggunakan Docker/Docker Compose**. Seluruh service dijalankan secara native (langsung via Node.js) untuk development, dan menggunakan kombinasi **cloud managed service** + **process manager** untuk production/staging.
+> Proyek ini **menggunakan Docker dan Docker Compose**. Seluruh service, termasuk backend, frontend, database, message broker, dan cache dijalankan di dalam container untuk development, staging, maupun production guna memastikan lingkungan yang konsisten (parity).
 
 ## 18.1 Strategi Service
 
 | Service | Development | Production/Staging |
 |---|---|---|
-| Backend (NestJS) | `npm run start:dev` langsung di lokal | `npm run build` → dijalankan via **PM2** atau platform hosting (Railway, Render, VPS) |
-| Frontend (Next.js) | `npm run dev` langsung di lokal | `npm run build && npm run start`, atau deploy ke **Vercel**/Netlify |
-| Database (PostgreSQL) | **Supabase** atau **Neon** (cloud, free tier) | Supabase/Neon tier production, atau managed PostgreSQL (AWS RDS, DigitalOcean) |
-| Cache (Redis) | **Upstash Redis** (cloud, free tier) | Upstash tier production, atau Redis Cloud/Elasticache |
-| Message Broker (RabbitMQ) | **CloudAMQP** (cloud, free tier "Little Lemur") | CloudAMQP tier production |
-| Worker (Notification/Activity/Analytics) | Proses Node.js terpisah, dijalankan via `npm run start:worker:<nama>` | Dijalankan sebagai proses terpisah oleh PM2 (`pm2 start ecosystem.config.js`) |
+| Backend (NestJS) | Container Docker via `docker-compose up` | Container Docker via Docker Swarm / Kubernetes / VPS dengan `docker-compose` |
+| Frontend (Next.js) | Container Docker via `docker-compose up` | Container Docker via Docker Swarm / Kubernetes / VPS dengan `docker-compose` |
+| Database (PostgreSQL) | Image `postgres:15-alpine` lokal di Docker | Managed PostgreSQL (AWS RDS, DigitalOcean) atau Image Docker dengan Volume terpisah |
+| Cache (Redis) | Image `redis:alpine` lokal di Docker | Redis Cloud/Elasticache atau Image Docker dengan Volume terpisah |
+| Message Broker (RabbitMQ) | Image `rabbitmq:3-management` lokal di Docker | CloudAMQP tier production atau Image Docker RabbitMQ |
+| Worker (Notification/Activity/Analytics) | Container Docker via `docker-compose up` | Container Docker terpisah yang dikelola via orchestrator (Swarm/K8s/Compose) |
 | Email (SMTP) | **Mailtrap** (email testing) | SMTP provider asli (SendGrid, Mailgun, SES) |
-| File Storage (attachment) | Local disk (folder `uploads/`) atau **Supabase Storage** | **Supabase Storage** atau S3-compatible object storage |
+| File Storage (attachment) | Local disk mount via Docker Volume | **Supabase Storage** atau S3-compatible object storage |
 
 ## 18.2 Environment Variables (contoh minimum)
 
 ```text
 # Database
-DATABASE_URL=
+DATABASE_URL=postgresql://postgres:postgres@db:5432/helpdeskpro
 
 # Cache
-REDIS_URL=
+REDIS_URL=redis://redis:6379
 
 # Message Broker
-RABBITMQ_URL=
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 
 # JWT
 JWT_ACCESS_SECRET=
@@ -966,61 +967,35 @@ NODE_ENV=development
 FRONTEND_URL=
 ```
 
-Lihat file `SETUP.md` dan `.env.example` pada repo untuk panduan step-by-step pembuatan akun Supabase/Upstash/CloudAMQP/Mailtrap dan cara mengisi setiap variabel di atas.
+Lihat file `SETUP.md` dan `.env.example` pada repo untuk konfigurasi variabel lingkungan di atas.
 
 ## 18.3 Menjalankan Aplikasi Secara Lokal (Development)
 
-```bash
-# Backend
-cd app-backend
-npm install
-npx prisma migrate dev --name init
-npx prisma generate
-npm run start:dev     # berjalan di http://localhost:3000
-
-# Frontend (di terminal terpisah)
-cd app-frontend
-npm install
-npm run dev            # berjalan di http://localhost:3001
-
-# Worker (di terminal terpisah, jika berjalan sebagai proses independen)
-cd app-backend
-npm run start:worker:notification
-npm run start:worker:activity
-npm run start:worker:analytics
-```
-
-## 18.4 Deployment Production Tanpa Docker (via PM2)
-
-Gunakan **PM2** sebagai process manager untuk menjaga backend & worker tetap berjalan, otomatis restart jika crash, dan mendukung zero-downtime reload.
+Menggunakan Docker Compose untuk menjalankan seluruh dependensi dan service sekaligus.
 
 ```bash
-npm install -g pm2
+# Menjalankan seluruh environment via Docker Compose
+docker-compose up -d
+
+# Menjalankan migrasi Prisma ke dalam container backend
+docker-compose exec backend npx prisma migrate dev --name init
 ```
 
-Contoh `ecosystem.config.js`:
-```js
-module.exports = {
-  apps: [
-    { name: "helpdeskpro-api", script: "dist/main.js", instances: 2, exec_mode: "cluster" },
-    { name: "worker-notification", script: "dist/workers/notification.worker.js" },
-    { name: "worker-activity", script: "dist/workers/activity.worker.js" },
-    { name: "worker-analytics", script: "dist/workers/analytics.worker.js" },
-  ],
-};
-```
+## 18.4 Deployment Production Menggunakan Docker
+
+Gunakan **Docker Compose** atau orchestrator seperti Docker Swarm / Kubernetes.
 
 ```bash
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup   # agar PM2 otomatis jalan lagi setelah server reboot
+# Build image docker untuk production
+docker-compose -f docker-compose.prod.yml build
+
+# Jalankan service di mode detached
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-Frontend Next.js disarankan deploy terpisah ke **Vercel** (paling praktis untuk Next.js, tanpa perlu kelola server sendiri).
+## 18.5 CI/CD (GitHub Actions dengan Docker Build)
 
-## 18.5 CI/CD (GitHub Actions, tanpa Docker build)
-
-Pipeline: **lint → unit test → build → integration test → deploy**.
+Pipeline: **lint → unit test → docker build → push registry → deploy**.
 
 ```yaml
 name: CI
@@ -1036,17 +1011,20 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
-      - run: npm run build
-      - run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+  docker-build-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t helpdeskpro-api:latest ./app-backend
+          # docker push myregistry/helpdeskpro-api:latest
 ```
 
-Deployment ke server production dapat dilakukan lewat:
-- **SSH deploy step** (rsync/scp build artifact ke VPS, lalu `pm2 reload`), atau
-- **Platform-native deploy** jika memakai Railway/Render (otomatis build & deploy dari GitHub push, tanpa perlu Docker sama sekali).
-
-Migrasi database (`prisma migrate deploy`) tetap dijalankan sebagai langkah terpisah sebelum service baru menerima traffic, terlepas dari mekanisme deploy yang dipakai.
+Deployment ke server production dilakukan dengan menggunakan image Docker terbaru yang telah berhasil melewati test dan build di CI.
 
 
 ---
