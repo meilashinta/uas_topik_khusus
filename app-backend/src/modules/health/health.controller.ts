@@ -26,7 +26,7 @@ export class HealthController {
           await this.prisma.$queryRaw`SELECT 1`;
           return { database: { status: 'up' } };
         } catch (error) {
-          return { database: { status: 'down', error: error.message } };
+          return { database: { status: 'down', error: (error as Error).message } };
         }
       },
       // Redis connectivity
@@ -35,7 +35,7 @@ export class HealthController {
           await this.redisService.ping();
           return { redis: { status: 'up' } };
         } catch (error) {
-          return { redis: { status: 'down', error: error.message } };
+          return { redis: { status: 'down', error: (error as Error).message } };
         }
       },
       // RabbitMQ connectivity
@@ -47,7 +47,7 @@ export class HealthController {
           }
           return { rabbitmq: { status: 'down', error: 'Channel closed' } };
         } catch (error) {
-          return { rabbitmq: { status: 'down', error: error.message } };
+          return { rabbitmq: { status: 'down', error: (error as Error).message } };
         }
       },
     ]);

@@ -15,7 +15,7 @@ describe('CacheService', () => {
 
   it('should return cached value if it exists (hit)', async () => {
     const cachedData = { foo: 'bar' };
-    redisServiceMock.get?.mockResolvedValue(JSON.stringify(cachedData));
+    (redisServiceMock.get as jest.Mock).mockResolvedValue(JSON.stringify(cachedData));
     const fetcher = jest.fn();
 
     const result = await cacheService.getOrSet('my_key', 60, fetcher);
@@ -27,7 +27,7 @@ describe('CacheService', () => {
   });
 
   it('should call fetcher and save to cache if not exists (miss)', async () => {
-    redisServiceMock.get?.mockResolvedValue(null);
+    (redisServiceMock.get as jest.Mock).mockResolvedValue(null);
     const fetchedData = { foo: 'baz' };
     const fetcher = jest.fn().mockResolvedValue(fetchedData);
 

@@ -8,11 +8,11 @@ export class EventPublisher {
   constructor(private readonly rabbitmqService: RabbitMQService) {}
 
   async publishTicketEvent(routingKey: string, payload: Omit<TicketEvent, 'eventId' | 'timestamp'>): Promise<void> {
-    const event: TicketEvent = {
+    const event = {
       ...payload,
       eventId: randomUUID(),
       timestamp: new Date().toISOString(),
-    };
+    } as TicketEvent;
 
     await this.rabbitmqService.publish('ticket.events', routingKey, event);
   }

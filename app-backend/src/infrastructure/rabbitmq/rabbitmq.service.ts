@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import * as amqp from 'amqplib';
+import { ChannelModel, Channel, connect, ConsumeMessage } from 'amqplib';
 
 @Injectable()
 export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RabbitMQService.name);
-  private connection: amqp.Connection;
-  private channel: amqp.Channel;
+  private connection!: ChannelModel;
+  private channel!: Channel;
 
   async onModuleInit() {
     await this.connect();
@@ -20,11 +20,11 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private async connect() {
     const url = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
     try {
-      this.connection = await amqp.connect(url);
+      this.connection = await connect(url);
       this.channel = await this.connection.createChannel();
       this.logger.log('Connected to RabbitMQ');
 
-      this.connection.on('error', (err) => {
+      this.connection.on('error', (err: any) => {
         this.logger.error('RabbitMQ connection error', err);
       });
       
@@ -78,7 +78,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     this.channel.publish(exchange, routingKey, message, { persistent: true });
   }
 
-  async subscribe(queue: string, handler: (msg: amqp.ConsumeMessage | null) => Promise<void>): Promise<void> {
+  async subscribe(queue: string, handler: (msg: ConsumeMessage | null) => Promise<void>): Promise<void> {
     if (!this.channel) {
       throw new Error('RabbitMQ channel not initialized');
     }

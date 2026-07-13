@@ -22,7 +22,7 @@ describe('EventPublisher', () => {
     await eventPublisher.publishTicketEvent('ticket.created', payload);
 
     expect(rabbitMQServiceMock.publish).toHaveBeenCalled();
-    const publishedCall = rabbitMQServiceMock.publish?.mock.calls[0];
+    const publishedCall = (rabbitMQServiceMock.publish as jest.Mock).mock.calls[0];
     expect(publishedCall?.[0]).toBe('ticket.events');
     expect(publishedCall?.[1]).toBe('ticket.created');
     
