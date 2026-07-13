@@ -14,7 +14,7 @@ describe('JwtTokenService', () => {
   });
 
   it('should generate access token', () => {
-    jwtServiceMock.sign?.mockReturnValue('token');
+    (jwtServiceMock.sign as jest.Mock).mockReturnValue('token');
     const result = service.generateAccessToken({ userId: '1', role: 'EMPLOYEE', email: 'test@example.com' });
     expect(result).toBe('token');
     expect(jwtServiceMock.sign).toHaveBeenCalledWith(
@@ -24,7 +24,7 @@ describe('JwtTokenService', () => {
   });
 
   it('should verify access token', () => {
-    jwtServiceMock.verify?.mockReturnValue({ userId: '1' });
+    (jwtServiceMock.verify as jest.Mock).mockReturnValue({ userId: '1' });
     const result = service.verifyAccessToken('token');
     expect(result.userId).toBe('1');
     expect(jwtServiceMock.verify).toHaveBeenCalledWith('token', expect.any(Object));

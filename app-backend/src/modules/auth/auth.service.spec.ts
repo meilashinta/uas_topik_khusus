@@ -51,6 +51,7 @@ describe('AuthService', () => {
       id: '1',
       email: 'test@test.com',
       passwordHash: 'hash',
+      role: { name: 'EMPLOYEE' },
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false); // Password mismatch
 

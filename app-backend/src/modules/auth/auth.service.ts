@@ -4,6 +4,7 @@ import { RedisService } from '../../infrastructure/redis/redis.service';
 import { JwtTokenService } from './jwt-token.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RoleName } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -25,6 +26,11 @@ export class AuthService {
       throw new BadRequestException('Department not found');
     }
 
+    const defaultRole = await this.prisma.role.findUnique({ where: { name: RoleName.EMPLOYEE } });
+    if (!defaultRole) {
+      throw new Error('Default role not found in database');
+    }
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     const user = await this.prisma.user.create({
@@ -33,7 +39,7 @@ export class AuthService {
         email: dto.email,
         passwordHash: hashedPassword,
         departmentId: dto.departmentId,
-        role: 'EMPLOYEE',
+        roleId: defaultRole.id,
       },
       select: {
         id: true,
@@ -55,7 +61,10 @@ export class AuthService {
       throw new HttpException('Too many login attempts. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
     }
 
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const user = await this.prisma.user.findUnique({ 
+      where: { email: dto.email },
+      include: { role: true }
+    });
     if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
       await this.redisService.incr(rateLimitKey);
       await this.redisService.expire(rateLimitKey, 15 * 60); // 15 mins
@@ -68,7 +77,7 @@ export class AuthService {
 
     await this.redisService.del(rateLimitKey);
 
-    const payload = { userId: user.id, role: user.role, email: user.email };
+    const payload = { userId: user.id, role: user.role.name, email: user.email };
     const accessToken = this.jwtTokenService.generateAccessToken(payload);
     const refreshToken = this.jwtTokenService.generateRefreshToken(payload);
 
@@ -79,7 +88,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role.name,
       }
     };
   }
