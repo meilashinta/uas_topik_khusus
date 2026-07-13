@@ -26,5 +26,36 @@ services:
       - '5672:5672'
       - '15672:15672'
 
+  backend:
+    build:
+      context: ./app-backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/helpdeskpro?schema=public
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - JWT_ACCESS_SECRET=supersecret123
+      - JWT_REFRESH_SECRET=supersecret123
+      - PORT=3000
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  frontend:
+    build:
+      context: ./app-frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3001:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+
 volumes:
   db-data:
