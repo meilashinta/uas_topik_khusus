@@ -1,12 +1,245 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum RoleName {
+  EMPLOYEE
+  TECHNICIAN
+  SUPERVISOR
+  ADMINISTRATOR
+}
+
+enum PriorityLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TicketStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  REJECTED
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        RoleName @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model Department {
+  id             String           @id @default(uuid()) @db.Uuid
+  name           String
+  code           String           @unique
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  users          User[]
+  ticketCategory TicketCategory[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model User {
+  id             String             @id @default(uuid()) @db.Uuid
+  name           String
+  email          String             @unique
+  passwordHash   String
+  roleId         String             @db.Uuid
+  departmentId   String             @db.Uuid
+  phone          String?
+  avatarUrl      String?
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  role           Role               @relation(fields: [roleId], references: [id])
+  department     Department         @relation(fields: [departmentId], references: [id])
+  ticketsCreated Ticket[]           @relation("TicketCreator")
+  assignments    Assignment[]       @relation("AssignmentTechnician")
+  assignedBy     Assignment[]       @relation("AssignmentAssignedBy")
+  comments       TicketComment[]
+  attachments    TicketAttachment[]
+  histories      TicketHistory[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  ratings        Rating[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([departmentId])
+  @@index([isActive])
+}
+
+model TicketCategory {
+  id           String      @id @default(uuid()) @db.Uuid
+  name         String
+  description  String
+  departmentId String?     @db.Uuid
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  department   Department? @relation(fields: [departmentId], references: [id])
+  tickets      Ticket[]
+
+  @@index([departmentId])
+  @@index([isActive])
+}
+
+model TicketPriority {
+  id                   String        @id @default(uuid()) @db.Uuid
+  name                 PriorityLevel @unique
+  slaResponseMinutes   Int
+  slaResolutionMinutes Int
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  tickets              Ticket[]
+}
+
+model Ticket {
+  id           String             @id @default(uuid()) @db.Uuid
+  ticketNumber String             @unique
+  title        String
+  description  String             @db.Text
+  categoryId   String             @db.Uuid
+  priorityId   String             @db.Uuid
+  status       TicketStatus       @default(OPEN)
+  createdById  String             @db.Uuid
+  slaDueAt     DateTime?
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  category     TicketCategory     @relation(fields: [categoryId], references: [id])
+  priority     TicketPriority     @relation(fields: [priorityId], references: [id])
+  createdBy    User               @relation("TicketCreator", fields: [createdById], references: [id])
+  assignments  Assignment[]
+  comments     TicketComment[]
+  attachments  TicketAttachment[]
+  histories    TicketHistory[]
+  rating       Rating?
+
+  @@index([ticketNumber])
+  @@index([status])
+  @@index([priorityId])
+  @@index([categoryId])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model Assignment {
+  id           String   @id @default(uuid()) @db.Uuid
+  ticketId     String   @db.Uuid
+  technicianId String   @db.Uuid
+  assignedById String   @db.Uuid
+  reason       String?
+  assignedAt   DateTime @default(now())
+  isActive     Boolean  @default(true)
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+  technician   User     @relation("AssignmentTechnician", fields: [technicianId], references: [id])
+  assignedBy   User     @relation("AssignmentAssignedBy", fields: [assignedById], references: [id])
+
+  @@index([ticketId])
+  @@index([technicianId])
+  @@index([isActive])
+}
+
+model TicketComment {
+  id         String   @id @default(uuid()) @db.Uuid
+  ticketId   String   @db.Uuid
+  userId     String   @db.Uuid
+  content    String   @db.Text
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@index([isInternal])
+}
+
+model TicketAttachment {
+  id           String   @id @default(uuid()) @db.Uuid
+  ticketId     String   @db.Uuid
+  uploadedById String   @db.Uuid
+  fileName     String
+  fileUrl      String
+  fileSize     Int
+  mimeType     String
+  createdAt    DateTime @default(now())
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+}
+
+model TicketHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  ticketId    String   @db.Uuid
+  fromStatus  String?
+  toStatus    String
+  changedById String   @db.Uuid
+  note        String?
+  createdAt   DateTime @default(now())
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  changedBy   User     @relation(fields: [changedById], references: [id])
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String   @db.Uuid
+  metadata   Json     @db.JsonB
+  ipAddress  String
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Rating {
+  id        String   @id @default(uuid()) @db.Uuid
+  ticketId  String   @unique @db.Uuid
+  ratedById String   @db.Uuid
+  score     Int
+  feedback  String?  @db.Text
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  ratedBy   User     @relation(fields: [ratedById], references: [id])
 }
