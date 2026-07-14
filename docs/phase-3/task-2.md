@@ -17,15 +17,15 @@ Implementasi endpoint untuk membuat, membaca, dan mengupdate tiket. Termasuk aut
 
 ### 2.1 DTO
 
-- [ ] Buat `CreateTicketDto`:
+- [x] Buat `CreateTicketDto`:
   - `title` — string, wajib, min 5 karakter, max 200 karakter
   - `description` — string, wajib, min 10 karakter
   - `categoryId` — UUID, wajib
   - `priorityId` — UUID, wajib
-- [ ] Buat `UpdateTicketDto`:
+- [x] Buat `UpdateTicketDto`:
   - `title` — string, opsional
   - `description` — string, opsional
-- [ ] Buat `TicketFilterDto` (extends `PaginationQueryDto`):
+- [x] Buat `TicketFilterDto` (extends `PaginationQueryDto`):
   - `status` — TicketStatus enum, opsional (bisa multiple)
   - `priorityId` — UUID, opsional
   - `categoryId` — UUID, opsional
@@ -37,17 +37,17 @@ Implementasi endpoint untuk membuat, membaca, dan mengupdate tiket. Termasuk aut
 
 ### 2.2 Ticket Number Generator
 
-- [ ] Buat service/utility `TicketNumberGenerator`:
+- [x] Buat service/utility `TicketNumberGenerator`:
   - Format: `TKT-YYYYMMDD-XXXX` (contoh: `TKT-20260710-0001`)
   - XXXX = sequential counter per hari, dimulai dari 0001
   - Gunakan database sequence atau query last ticket number hari ini + 1
   - Handle race condition (gunakan database transaction atau lock)
-- [ ] Buat unit test: verifikasi format, verifikasi increment, verifikasi reset harian
+- [x] Buat unit test: verifikasi format, verifikasi increment, verifikasi reset harian
 
 ### 2.3 Create Ticket — `POST /api/v1/tickets`
 
-- [ ] Role: `@Roles('EMPLOYEE')`
-- [ ] Buat `CreateTicketCommand` handler:
+- [x] Role: `@Roles('EMPLOYEE')`
+- [x] Buat `CreateTicketCommand` handler:
   1. Validasi `categoryId` ada dan aktif
   2. Validasi `priorityId` ada
   3. Generate `ticketNumber` (format `TKT-YYYYMMDD-XXXX`)
@@ -69,25 +69,25 @@ Implementasi endpoint untuk membuat, membaca, dan mengupdate tiket. Termasuk aut
      }
      ```
   9. Return data tiket yang baru dibuat
-- [ ] Error handling:
+- [x] Error handling:
   - Category/Priority tidak ditemukan → HTTP 400
   - Validasi DTO gagal → HTTP 400
 
 ### 2.4 Get Ticket List — `GET /api/v1/tickets`
 
-- [ ] Buat `GetTicketListQuery` handler:
+- [x] Buat `GetTicketListQuery` handler:
   - **EMPLOYEE**: hanya melihat tiket miliknya (`createdById = currentUser.id`)
   - **TECHNICIAN**: hanya melihat tiket yang di-assign kepadanya
   - **SUPERVISOR & ADMINISTRATOR**: melihat semua tiket
-- [ ] Filter berdasarkan `TicketFilterDto`
-- [ ] Pagination dengan meta (`page`, `limit`, `total`)
-- [ ] Sorting: default `createdAt DESC`
-- [ ] Include relasi: `category`, `priority`, `createdBy` (nama saja)
-- [ ] Implementasi full-text search pada `title` dan `description` (PostgreSQL `ILIKE` atau `tsvector`)
+- [x] Filter berdasarkan `TicketFilterDto`
+- [x] Pagination dengan meta (`page`, `limit`, `total`)
+- [x] Sorting: default `createdAt DESC`
+- [x] Include relasi: `category`, `priority`, `createdBy` (nama saja)
+- [x] Implementasi full-text search pada `title` dan `description` (PostgreSQL `ILIKE` atau `tsvector`)
 
 ### 2.5 Get Ticket Detail — `GET /api/v1/tickets/:id`
 
-- [ ] Buat `GetTicketDetailQuery` handler:
+- [x] Buat `GetTicketDetailQuery` handler:
   - Ownership check sesuai role (EMPLOYEE hanya miliknya, TECHNICIAN hanya assign-nya)
   - Include relasi lengkap:
     - `category` (nama)
@@ -98,29 +98,29 @@ Implementasi endpoint untuk membuat, membaca, dan mengupdate tiket. Termasuk aut
     - `attachments` (list)
     - `history` (list status changes)
     - `rating` (jika sudah ada)
-- [ ] Cache di Redis (key: `ticket:{id}`, TTL: 30 detik)
-- [ ] Jika tiket tidak ditemukan → HTTP 404
-- [ ] Jika user tidak punya akses → HTTP 403
+- [x] Cache di Redis (key: `ticket:{id}`, TTL: 30 detik)
+- [x] Jika tiket tidak ditemukan → HTTP 404
+- [x] Jika user tidak punya akses → HTTP 403
 
 ### 2.6 Update Ticket — `PATCH /api/v1/tickets/:id`
 
-- [ ] Role: `@Roles('EMPLOYEE')`
-- [ ] Buat `UpdateTicketCommand` handler:
+- [x] Role: `@Roles('EMPLOYEE')`
+- [x] Buat `UpdateTicketCommand` handler:
   1. Cari tiket by ID
   2. Validasi ownership (`createdById === currentUser.id`)
   3. Validasi status === `OPEN` (FR-TICKET-03: hanya bisa diubah saat OPEN)
   4. Update field `title` dan/atau `description`
   5. Catat audit log
   6. Invalidasi cache tiket
-- [ ] Error handling:
+- [x] Error handling:
   - Tiket tidak ditemukan → HTTP 404
   - Bukan pemilik → HTTP 403
   - Status bukan OPEN → HTTP 422 "Tiket hanya dapat diubah saat berstatus OPEN"
 
 ### 2.7 Cancel Ticket — `PATCH /api/v1/tickets/:id/cancel`
 
-- [ ] Role: `@Roles('EMPLOYEE')`
-- [ ] Buat handler:
+- [x] Role: `@Roles('EMPLOYEE')`
+- [x] Buat handler:
   1. Validasi ownership
   2. Validasi status === `OPEN` (FR-TICKET-04: hanya bisa batal saat OPEN)
   3. Update status → `CANCELLED` (atau tetap gunakan `REJECTED` dengan catatan cancelled by user)
@@ -133,13 +133,13 @@ Implementasi endpoint untuk membuat, membaca, dan mengupdate tiket. Termasuk aut
 
 ## Definition of Done
 
-- [ ] Employee bisa membuat tiket baru dengan nomor unik `TKT-YYYYMMDD-XXXX`
-- [ ] Event `TicketCreated` ter-publish ke RabbitMQ
-- [ ] List tiket mendukung filter, pagination, sorting, search
-- [ ] RBAC ownership check bekerja (EMPLOYEE hanya lihat miliknya)
-- [ ] Detail tiket menampilkan semua relasi
-- [ ] Update tiket hanya bisa saat status OPEN oleh pemilik
-- [ ] Cancel tiket hanya bisa saat status OPEN oleh pemilik
-- [ ] Semua error return format standar
-- [ ] Swagger docs lengkap
-- [ ] Unit test: TicketNumberGenerator, CreateTicketCommand, ownership validation
+- [x] Employee bisa membuat tiket baru dengan nomor unik `TKT-YYYYMMDD-XXXX`
+- [x] Event `TicketCreated` ter-publish ke RabbitMQ
+- [x] List tiket mendukung filter, pagination, sorting, search
+- [x] RBAC ownership check bekerja (EMPLOYEE hanya lihat miliknya)
+- [x] Detail tiket menampilkan semua relasi
+- [x] Update tiket hanya bisa saat status OPEN oleh pemilik
+- [x] Cancel tiket hanya bisa saat status OPEN oleh pemilik
+- [x] Semua error return format standar
+- [x] Swagger docs lengkap
+- [x] Unit test: TicketNumberGenerator, CreateTicketCommand, ownership validation

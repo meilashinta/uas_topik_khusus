@@ -17,7 +17,7 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
 
 ### 3.1 State Machine Service
 
-- [ ] Buat `TicketStateMachineService` yang mendefinisikan transisi sah:
+- [x] Buat `TicketStateMachineService` yang mendefinisikan transisi sah:
   ```typescript
   const VALID_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
     OPEN: [ASSIGNED, REJECTED],
@@ -28,16 +28,16 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
     REJECTED: [],                       // final state
   };
   ```
-- [ ] Buat method `canTransition(from: TicketStatus, to: TicketStatus): boolean`
-- [ ] Buat method `validateTransition(from, to): void` — throw `UnprocessableEntityException` (HTTP 422) jika transisi ilegal
-- [ ] Buat method `getValidNextStatuses(from: TicketStatus): TicketStatus[]`
-- [ ] Buat unit test yang menguji SEMUA kombinasi dari matriks transisi PRD Bagian 9.1:
+- [x] Buat method `canTransition(from: TicketStatus, to: TicketStatus): boolean`
+- [x] Buat method `validateTransition(from, to): void` — throw `UnprocessableEntityException` (HTTP 422) jika transisi ilegal
+- [x] Buat method `getValidNextStatuses(from: TicketStatus): TicketStatus[]`
+- [x] Buat unit test yang menguji SEMUA kombinasi dari matriks transisi PRD Bagian 9.1:
   - Test setiap transisi valid (harus sukses)
   - Test setiap transisi ilegal (harus throw 422)
 
 ### 3.2 Role Validation per Transisi
 
-- [ ] Tambahkan validasi siapa yang boleh melakukan setiap transisi:
+- [x] Tambahkan validasi siapa yang boleh melakukan setiap transisi:
   | Transisi | Role yang Diizinkan |
   |---|---|
   | OPEN → ASSIGNED | Supervisor, Administrator |
@@ -47,29 +47,29 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
   | IN_PROGRESS → ASSIGNED | Supervisor (reassign) |
   | RESOLVED → IN_PROGRESS | Employee (pemilik tiket, reopen) |
   | RESOLVED → CLOSED | Employee (pemilik, approve) atau System (auto-close) |
-- [ ] Buat method `validateTransitionRole(from, to, userRole, userId, ticket)` yang memvalidasi role DAN ownership/assignment
+- [x] Buat method `validateTransitionRole(from, to, userRole, userId, ticket)` yang memvalidasi role DAN ownership/assignment
 
 ### 3.3 Reject Ticket — `PATCH /api/v1/tickets/:id/reject`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Buat DTO `RejectTicketDto`:
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Buat DTO `RejectTicketDto`:
   - `reason` — string, wajib, min 10 karakter
-- [ ] Buat `RejectTicketCommand` handler:
+- [x] Buat `RejectTicketCommand` handler:
   1. Cari tiket by ID
   2. Validasi transisi: status HARUS `OPEN` → `REJECTED`
   3. Update status ke `REJECTED`
   4. Simpan reason di `TicketHistory.note`
   5. Publish event `ticket.rejected`
   6. Invalidasi cache
-- [ ] FR-REJECT-02: Tiket REJECTED tidak bisa diproses lebih lanjut
+- [x] FR-REJECT-02: Tiket REJECTED tidak bisa diproses lebih lanjut
 
 ### 3.4 Close Ticket (Employee Approve) — `PATCH /api/v1/tickets/:id/close`
 
-- [ ] Role: `@Roles('EMPLOYEE')`
-- [ ] Buat DTO `CloseTicketDto`:
+- [x] Role: `@Roles('EMPLOYEE')`
+- [x] Buat DTO `CloseTicketDto`:
   - `rating` — int, wajib, 1-5
   - `feedback` — string, opsional
-- [ ] Buat `CloseTicketCommand` handler:
+- [x] Buat `CloseTicketCommand` handler:
   1. Cari tiket by ID
   2. Validasi ownership (`createdById === currentUser.id`)
   3. Validasi transisi: status HARUS `RESOLVED` → `CLOSED`
@@ -81,10 +81,10 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
 
 ### 3.5 Reopen Ticket (Employee Reject) — `PATCH /api/v1/tickets/:id/reopen`
 
-- [ ] Role: `@Roles('EMPLOYEE')`
-- [ ] Buat DTO `ReopenTicketDto`:
+- [x] Role: `@Roles('EMPLOYEE')`
+- [x] Buat DTO `ReopenTicketDto`:
   - `reason` — string, wajib (alasan penolakan)
-- [ ] Buat handler:
+- [x] Buat handler:
   1. Validasi ownership
   2. Validasi transisi: `RESOLVED` → `IN_PROGRESS`
   3. Update status ke `IN_PROGRESS`
@@ -94,10 +94,10 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
 
 ### 3.6 Generic Status Update — `PATCH /api/v1/tickets/:id/status`
 
-- [ ] Buat DTO `UpdateStatusDto`:
+- [x] Buat DTO `UpdateStatusDto`:
   - `status` — TicketStatus, wajib
   - `note` — string, opsional
-- [ ] Buat `UpdateTicketStatusCommand` handler:
+- [x] Buat `UpdateTicketStatusCommand` handler:
   1. Cari tiket
   2. Panggil `TicketStateMachineService.validateTransition(currentStatus, newStatus)`
   3. Panggil `validateTransitionRole(...)` untuk cek role & ownership
@@ -111,22 +111,22 @@ Implementasi state machine tiket yang memvalidasi setiap transisi status. Ini ad
 
 ### 3.7 Get Ticket History — `GET /api/v1/tickets/:id/history`
 
-- [ ] Auth required
-- [ ] Return list semua TicketHistory untuk tiket tertentu
-- [ ] Ordered by `createdAt ASC`
-- [ ] Include: `changedBy` (nama user), `fromStatus`, `toStatus`, `note`, `createdAt`
+- [x] Auth required
+- [x] Return list semua TicketHistory untuk tiket tertentu
+- [x] Ordered by `createdAt ASC`
+- [x] Include: `changedBy` (nama user), `fromStatus`, `toStatus`, `note`, `createdAt`
 
 ---
 
 ## Definition of Done
 
-- [ ] State machine MENOLAK semua transisi ilegal dengan HTTP 422
-- [ ] State machine MENGIZINKAN semua transisi valid
-- [ ] Role + ownership validation benar di setiap transisi
-- [ ] Reject ticket menyimpan alasan dan tiket menjadi final state
-- [ ] Close ticket menyimpan rating
-- [ ] Reopen ticket mengembalikan status ke IN_PROGRESS
-- [ ] Setiap transisi mencatat TicketHistory
-- [ ] Setiap transisi publish event ke RabbitMQ
-- [ ] **Unit test WAJIB mencakup seluruh kombinasi matriks transisi (36 kombinasi)**
-- [ ] Swagger docs lengkap dengan error response 422
+- [x] State machine MENOLAK semua transisi ilegal dengan HTTP 422
+- [x] State machine MENGIZINKAN semua transisi valid
+- [x] Role + ownership validation benar di setiap transisi
+- [x] Reject ticket menyimpan alasan dan tiket menjadi final state
+- [x] Close ticket menyimpan rating
+- [x] Reopen ticket mengembalikan status ke IN_PROGRESS
+- [x] Setiap transisi mencatat TicketHistory
+- [x] Setiap transisi publish event ke RabbitMQ
+- [x] **Unit test WAJIB mencakup seluruh kombinasi matriks transisi (36 kombinasi)**
+- [x] Swagger docs lengkap dengan error response 422

@@ -17,16 +17,16 @@ Implementasi assign dan reassign teknisi ke tiket oleh Supervisor, termasuk trac
 
 ### 1.1 DTO
 
-- [ ] Buat `AssignTechnicianDto`:
+- [x] Buat `AssignTechnicianDto`:
   - `technicianId` — UUID, wajib
-- [ ] Buat `ReassignTechnicianDto`:
+- [x] Buat `ReassignTechnicianDto`:
   - `technicianId` — UUID, wajib (teknisi baru)
   - `reason` — string, wajib (FR-ASSIGN-02: alasan reassign wajib diisi)
 
 ### 1.2 Assign Technician — `POST /api/v1/tickets/:id/assign`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Buat `AssignTechnicianCommand` handler:
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Buat `AssignTechnicianCommand` handler:
   1. Cari tiket by ID
   2. Validasi status tiket HARUS `OPEN`
   3. Validasi `technicianId` ada, aktif, dan memiliki role `TECHNICIAN`
@@ -51,15 +51,15 @@ Implementasi assign dan reassign teknisi ke tiket oleh Supervisor, termasuk trac
      }
      ```
   9. Invalidasi cache tiket
-- [ ] Error handling:
+- [x] Error handling:
   - Tiket tidak ditemukan → HTTP 404
   - Status bukan OPEN → HTTP 422
   - Technician tidak valid → HTTP 400
 
 ### 1.3 Reassign Technician — `POST /api/v1/tickets/:id/reassign`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Buat `ReassignTechnicianCommand` handler:
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Buat `ReassignTechnicianCommand` handler:
   1. Cari tiket by ID
   2. Validasi status: `ASSIGNED` atau `IN_PROGRESS` (FR-ASSIGN-02: sebelum RESOLVED)
   3. Validasi technician baru berbeda dari technician saat ini
@@ -73,30 +73,30 @@ Implementasi assign dan reassign teknisi ke tiket oleh Supervisor, termasuk trac
 
 ### 1.4 Get Technician Workload
 
-- [ ] Buat query `GET /api/v1/technicians/workload` (atau embed di list technicians):
+- [x] Buat query `GET /api/v1/technicians/workload` (atau embed di list technicians):
   - Return list semua technician dengan:
     - Jumlah tiket aktif (status: ASSIGNED, IN_PROGRESS) — FR-ASSIGN-03
     - Jumlah tiket resolved hari ini
     - Rata-rata rating (opsional)
   - Digunakan oleh Supervisor saat memilih teknisi di form assign
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
 
 ### 1.5 Get Assignment History per Ticket
 
-- [ ] Buat query handler untuk menampilkan riwayat assignment tiket
-- [ ] Include: technician name, assigned by, assigned at, reason, isActive
-- [ ] Bisa diakses via `GET /api/v1/tickets/:id` (sudah ada di detail tiket)
+- [x] Buat query handler untuk menampilkan riwayat assignment tiket
+- [x] Include: technician name, assigned by, assigned at, reason, isActive
+- [x] Bisa diakses via `GET /api/v1/tickets/:id` (sudah ada di detail tiket)
 
 ---
 
 ## Definition of Done
 
-- [ ] Supervisor bisa assign technician ke tiket OPEN
-- [ ] Status tiket berubah ke ASSIGNED setelah assign
-- [ ] SLA `slaDueAt` dihitung otomatis
-- [ ] Supervisor bisa reassign dengan alasan wajib
-- [ ] Reassign membuat assignment lama non-aktif
-- [ ] Beban kerja teknisi bisa dilihat (jumlah tiket aktif)
-- [ ] Event `ticket.assigned` ter-publish
-- [ ] Swagger docs lengkap
-- [ ] Unit test: assign flow, reassign flow, workload query
+- [x] Supervisor bisa assign technician ke tiket OPEN
+- [x] Status tiket berubah ke ASSIGNED setelah assign
+- [x] SLA `slaDueAt` dihitung otomatis
+- [x] Supervisor bisa reassign dengan alasan wajib
+- [x] Reassign membuat assignment lama non-aktif
+- [x] Beban kerja teknisi bisa dilihat (jumlah tiket aktif)
+- [x] Event `ticket.assigned` ter-publish
+- [x] Swagger docs lengkap
+- [x] Unit test: assign flow, reassign flow, workload query

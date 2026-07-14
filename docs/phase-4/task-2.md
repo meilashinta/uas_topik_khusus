@@ -17,16 +17,16 @@ Implementasi fitur komentar pada tiket, termasuk komentar publik (terlihat semua
 
 ### 2.1 DTO
 
-- [ ] Buat `CreateCommentDto`:
+- [x] Buat `CreateCommentDto`:
   - `content` — string, wajib, min 1 karakter
   - `isInternal` — boolean, default `false`
-- [ ] Buat `CommentFilterDto`:
+- [x] Buat `CommentFilterDto`:
   - `isInternal` — boolean, opsional (untuk filtering)
 
 ### 2.2 Add Comment — `POST /api/v1/tickets/:id/comments`
 
-- [ ] Auth required, semua role
-- [ ] Buat `AddCommentCommand` handler:
+- [x] Auth required, semua role
+- [x] Buat `AddCommentCommand` handler:
   1. Cari tiket by ID
   2. Validasi akses ke tiket (sesuai role & ownership)
   3. Validasi role untuk `isInternal`:
@@ -38,8 +38,8 @@ Implementasi fitur komentar pada tiket, termasuk komentar publik (terlihat semua
 
 ### 2.3 Get Comments — `GET /api/v1/tickets/:id/comments`
 
-- [ ] Auth required
-- [ ] Buat query handler:
+- [x] Auth required
+- [x] Buat query handler:
   - Ambil semua komentar untuk tiket
   - **Filtering berdasarkan role**:
     - Employee: hanya melihat komentar `isInternal = false`
@@ -50,21 +50,21 @@ Implementasi fitur komentar pada tiket, termasuk komentar publik (terlihat semua
 
 ### 2.4 Access Control per Comment
 
-- [ ] Pastikan Employee hanya bisa:
+- [x] Pastikan Employee hanya bisa:
   - Melihat komentar publik di tiket miliknya
   - Membuat komentar publik di tiket miliknya
-- [ ] Pastikan Technician hanya bisa:
+- [x] Pastikan Technician hanya bisa:
   - Melihat & membuat komentar di tiket yang di-assign kepadanya
-- [ ] Supervisor & Admin bisa akses semua
+- [x] Supervisor & Admin bisa akses semua
 
 ---
 
 ## Definition of Done
 
-- [ ] User bisa menambah komentar di tiket
-- [ ] Employee TIDAK bisa melihat komentar internal
-- [ ] Employee TIDAK bisa membuat komentar internal
-- [ ] Komentar ditampilkan kronologis
-- [ ] Access control per role bekerja
-- [ ] Swagger docs lengkap
-- [ ] Unit test: create comment, internal visibility filter
+- [x] User bisa menambah komentar di tiket
+- [x] Employee TIDAK bisa melihat komentar internal
+- [x] Employee TIDAK bisa membuat komentar internal
+- [x] Komentar ditampilkan kronologis
+- [x] Access control per role bekerja
+- [x] Swagger docs lengkap
+- [x] Unit test: create comment, internal visibility filter
