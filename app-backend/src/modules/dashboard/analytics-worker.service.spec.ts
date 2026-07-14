@@ -79,7 +79,7 @@ describe('AnalyticsWorkerService', () => {
     });
 
     it('should process messages correctly in subscription callback', async () => {
-      rabbitmqService.subscribe.mockImplementation(async (queue, cb) => {
+      rabbitmqService.subscribe.mockImplementation(async (queue: any, cb: any) => {
         await cb(null); // Should handle null
         await cb({ fields: { routingKey: 'ticket.created' }, content: Buffer.from('{}') });
       });

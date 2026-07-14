@@ -73,7 +73,7 @@ describe('ReportsService', () => {
 
     it('should throw error for unsupported format', async () => {
       const filter = new ReportFilterDto();
-      filter.format = 'doc';
+      filter.format = 'doc' as any;
       await expect(service.generateTicketReport(filter)).rejects.toThrow(BadRequestException);
     });
 

@@ -81,7 +81,7 @@ describe('NotificationsService', () => {
       prismaMock.notification.findMany.mockResolvedValue([{ id: '1' }]);
       prismaMock.notification.count.mockResolvedValue(1);
       
-      const result = await service.getUserNotifications('u1', 1, 10);
+      const result = await service.getUserNotifications('u1', 1 as any, 10 as any);
       expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
     });

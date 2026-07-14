@@ -50,19 +50,19 @@ describe('AuditLogService', () => {
   describe('log', () => {
     it('should create log', async () => {
       prismaMock.activityLog.create.mockResolvedValue({ id: '1' });
-      const result = await service.log({ action: 'TEST', entityType: 'Test', entityId: '1' });
+      const result = await service.log({ action: 'TEST', entityType: 'Test', entityId: '1', ipAddress: '127.0.0.1' });
       expect(result.id).toBe('1');
     });
 
     it('should return null on P2002', async () => {
       prismaMock.activityLog.create.mockRejectedValue({ code: 'P2002', meta: { target: ['eventId'] } });
-      const result = await service.log({ action: 'TEST', entityType: 'Test', entityId: '1', eventId: 'e1' });
+      const result = await service.log({ action: 'TEST', entityType: 'Test', entityId: '1', eventId: 'e1', ipAddress: '127.0.0.1' });
       expect(result).toBeNull();
     });
 
     it('should throw on other errors', async () => {
       prismaMock.activityLog.create.mockRejectedValue(new Error('other error'));
-      await expect(service.log({ action: 'TEST', entityType: 'Test', entityId: '1' })).rejects.toThrow();
+      await expect(service.log({ action: 'TEST', entityType: 'Test', entityId: '1', ipAddress: '127.0.0.1' })).rejects.toThrow();
     });
   });
 

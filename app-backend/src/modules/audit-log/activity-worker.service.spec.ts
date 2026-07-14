@@ -52,7 +52,7 @@ describe('ActivityWorkerService', () => {
       properties: { messageId: 'm1' },
     };
 
-    prismaMock.$transaction.mockImplementation(async (cb) => {
+    prismaMock.$transaction.mockImplementation(async (cb: any) => {
       const txMock = {
         activityLog: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn() },
         ticketHistory: { create: jest.fn() }
@@ -73,7 +73,7 @@ describe('ActivityWorkerService', () => {
       properties: { messageId: 'm1' },
     };
 
-    prismaMock.$transaction.mockImplementation(async (cb) => {
+    prismaMock.$transaction.mockImplementation(async (cb: any) => {
       const txMock = {
         activityLog: { findUnique: jest.fn().mockResolvedValue({ id: '1' }), create: jest.fn() },
       };

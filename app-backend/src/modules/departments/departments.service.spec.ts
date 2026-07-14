@@ -46,7 +46,7 @@ describe('DepartmentsService', () => {
       prismaMock.department.findMany = jest.fn().mockResolvedValue([{ id: 'd1' }]);
       prismaMock.department.count = jest.fn().mockResolvedValue(1);
 
-      const result = await service.findAll({ page: 1, limit: 10, isActive: true, search: 'Tech' });
+      const result = await service.findAll({ page: 1, limit: 10, isActive: true, search: 'Tech' } as any);
       expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
     });
