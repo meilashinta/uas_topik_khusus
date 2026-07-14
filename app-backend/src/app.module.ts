@@ -28,6 +28,7 @@ import { join } from 'path';
 
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
+    ScheduleModule.forRoot(),
     PrismaModule, CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, RolesModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule, StorageModule],
   controllers: [AppController],
   providers: [

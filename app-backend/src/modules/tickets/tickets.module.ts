@@ -7,11 +7,19 @@ import { RabbitMQModule } from '../../infrastructure/rabbitmq/rabbitmq.module';
 import { RedisModule } from '../../infrastructure/redis/redis.module';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
 import { TicketStateMachineService } from './utils/ticket-state-machine.service';
+import { SlaService } from './utils/sla.service';
+import { SlaCronService } from './utils/sla.cron';
 
 @Module({
   imports: [PrismaModule, AuditLogModule, RabbitMQModule, RedisModule],
   controllers: [TicketsController],
-  providers: [TicketsService, TicketNumberGenerator, TicketStateMachineService],
+  providers: [
+    TicketsService,
+    TicketNumberGenerator,
+    TicketStateMachineService,
+    SlaService,
+    SlaCronService,
+  ],
   exports: [TicketsService],
 })
 export class TicketsModule {}

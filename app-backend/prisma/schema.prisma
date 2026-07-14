@@ -122,6 +122,7 @@ model Ticket {
   status       TicketStatus       @default(OPEN)
   createdById  String             @db.Uuid
   slaDueAt     DateTime?
+  isOverdue    Boolean            @default(false)
   resolvedAt   DateTime?
   closedAt     DateTime?
   createdAt    DateTime           @default(now())

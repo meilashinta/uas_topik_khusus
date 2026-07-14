@@ -80,7 +80,7 @@ export class TicketsService {
   }
 
   async findAll(filterDto: TicketFilterDto, user: any) {
-    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', search, status, priorityId, categoryId, departmentId, createdById, dateFrom, dateTo } = filterDto;
+    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', search, status, priorityId, categoryId, departmentId, createdById, dateFrom, dateTo, isOverdue } = filterDto;
     const where: Prisma.TicketWhereInput = {};
 
     if (user.role === RoleName.EMPLOYEE) {
@@ -96,6 +96,7 @@ export class TicketsService {
     if (categoryId) where.categoryId = categoryId;
     if (departmentId) where.category = { departmentId };
     if (createdById) where.createdById = createdById;
+    if (isOverdue !== undefined) where.isOverdue = isOverdue;
     
     if (dateFrom || dateTo) {
       where.createdAt = {};

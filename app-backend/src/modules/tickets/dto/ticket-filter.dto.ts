@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsUUID, IsEnum, IsArray, IsDateString } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsUUID, IsEnum, IsArray, IsDateString, IsBoolean } from 'class-validator';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { TicketStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
@@ -45,7 +45,13 @@ export class TicketFilterDto extends PaginationQueryDto {
   @IsDateString()
   dateTo?: string;
 
-  @ApiPropertyOptional({ description: 'Full text search on title or description' })
+  @ApiProperty({ description: 'Filter by overdue SLA', required: false, type: Boolean })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isOverdue?: boolean;
+
+  @ApiProperty({ description: 'Search term for title or description', required: false })
   @IsOptional()
   @IsString()
   search?: string;
