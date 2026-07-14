@@ -17,11 +17,11 @@ Implementasi modul Audit Log (Activity Trail) yang mencatat seluruh aksi sensiti
 
 ### 1.1 Audit Log Service
 
-- [ ] Buat `AuditLogService` dengan method:
+- [x] Buat `AuditLogService` dengan method:
   - `log(params: CreateAuditLogDto): Promise<ActivityLog>`
   - `findAll(filters: AuditLogFilterDto): Promise<PaginatedResult<ActivityLog>>`
   - `findByEntity(entityType: string, entityId: string): Promise<ActivityLog[]>`
-- [ ] Buat DTO `CreateAuditLogDto`:
+- [x] Buat DTO `CreateAuditLogDto`:
   - `userId` — UUID, nullable (null untuk aksi sistem)
   - `action` — string (mis. `TICKET_CREATED`, `USER_ROLE_CHANGED`)
   - `entityType` — string (mis. `Ticket`, `User`, `Department`)
@@ -33,34 +33,34 @@ Implementasi modul Audit Log (Activity Trail) yang mencatat seluruh aksi sensiti
 
 #### 1.2.1 Get Audit Logs — `GET /api/v1/audit-logs`
 
-- [ ] Role: `@Roles('ADMINISTRATOR')`
-- [ ] Filter:
+- [x] Role: `@Roles('ADMINISTRATOR')`
+- [x] Filter:
   - `userId` — UUID, opsional
   - `action` — string, opsional
   - `entityType` — string, opsional
   - `entityId` — UUID, opsional
   - `dateFrom` / `dateTo` — DateTime, opsional
-- [ ] Pagination & sorting (default: `createdAt DESC`)
+- [x] Pagination & sorting (default: `createdAt DESC`)
 
 #### 1.2.2 Get Audit Log Detail — `GET /api/v1/audit-logs/:id`
 
-- [ ] Role: `@Roles('ADMINISTRATOR')`
-- [ ] Return detail log termasuk metadata (before/after)
+- [x] Role: `@Roles('ADMINISTRATOR')`
+- [x] Return detail log termasuk metadata (before/after)
 
 ### 1.3 Audit Log Interceptor (Otomatis)
 
-- [ ] Buat `AuditLogInterceptor` yang bisa dipasang per controller/endpoint
-- [ ] Interceptor otomatis mencatat:
+- [x] Buat `AuditLogInterceptor` yang bisa dipasang per controller/endpoint
+- [x] Interceptor otomatis mencatat:
   - User yang melakukan aksi (dari JWT)
   - IP address (dari request)
   - Action (dari metadata decorator)
   - Entity type & ID (dari route params)
-- [ ] Buat decorator `@AuditAction(action: string)` untuk menandai endpoint
+- [x] Buat decorator `@AuditAction(action: string)` untuk menandai endpoint
 
 ### 1.4 Activity Worker (RabbitMQ Consumer)
 
-- [ ] Buat `ActivityWorker` yang subscribe ke queue `activity-worker`
-- [ ] Handle event:
+- [x] Buat `ActivityWorker` yang subscribe ke queue `activity-worker`
+- [x] Handle event:
   | Event | Action Log |
   |---|---|
   | `ticket.created` | `TICKET_CREATED` |
@@ -68,14 +68,14 @@ Implementasi modul Audit Log (Activity Trail) yang mencatat seluruh aksi sensiti
   | `ticket.status_changed` | `TICKET_STATUS_CHANGED` |
   | `ticket.resolved` | `TICKET_RESOLVED` |
   | `ticket.rejected` | `TICKET_REJECTED` |
-- [ ] Setiap event → buat entri `TicketHistory` DAN `ActivityLog`
-- [ ] Implementasi idempotency (cek `eventId` agar tidak duplikat)
-- [ ] Manual ACK setelah berhasil proses
-- [ ] Error → retry 3x → Dead Letter Queue
+- [x] Setiap event → buat entri `TicketHistory` DAN `ActivityLog`
+- [x] Implementasi idempotency (cek `eventId` agar tidak duplikat)
+- [x] Manual ACK setelah berhasil proses
+- [x] Error → retry 3x → Dead Letter Queue
 
 ### 1.5 Daftar Aksi yang Wajib Di-Audit
 
-- [ ] Pastikan aksi berikut tercatat di ActivityLog:
+- [x] Pastikan aksi berikut tercatat di ActivityLog:
   - Login berhasil & gagal
   - Register user baru
   - Perubahan role user
@@ -92,10 +92,10 @@ Implementasi modul Audit Log (Activity Trail) yang mencatat seluruh aksi sensiti
 
 ## Definition of Done
 
-- [ ] Semua aksi sensitif tercatat di `ActivityLog` dengan metadata lengkap
-- [ ] Activity Worker memproses event dari RabbitMQ dan menulis log
-- [ ] Admin bisa melihat audit log dengan filter & pagination
-- [ ] Worker idempotent (event duplikat tidak bikin log ganda)
-- [ ] TicketHistory terisi otomatis dari Activity Worker
-- [ ] Swagger docs lengkap
-- [ ] Unit test: AuditLogService, Activity Worker event processing
+- [x] Semua aksi sensitif tercatat di `ActivityLog` dengan metadata lengkap
+- [x] Activity Worker memproses event dari RabbitMQ dan menulis log
+- [x] Admin bisa melihat audit log dengan filter & pagination
+- [x] Worker idempotent (event duplikat tidak bikin log ganda)
+- [x] TicketHistory terisi otomatis dari Activity Worker
+- [x] Swagger docs lengkap
+- [x] Unit test: AuditLogService, Activity Worker event processing

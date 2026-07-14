@@ -17,7 +17,7 @@ Implementasi sistem notifikasi in-app dan email yang dipicu oleh event dari Rabb
 
 ### 4.1 Notification Service
 
-- [ ] Buat `NotificationService` dengan method:
+- [x] Buat `NotificationService` dengan method:
   - `createNotification(userId, type, title, message): Promise<Notification>`
   - `createBulkNotifications(userIds[], type, title, message): Promise<void>`
   - `markAsRead(notificationId, userId): Promise<void>`
@@ -27,7 +27,7 @@ Implementasi sistem notifikasi in-app dan email yang dipicu oleh event dari Rabb
 
 ### 4.2 Notification Type Constants
 
-- [ ] Definisikan semua tipe notifikasi sesuai PRD FR-NOTIF-01:
+- [x] Definisikan semua tipe notifikasi sesuai PRD FR-NOTIF-01:
   ```typescript
   enum NotificationType {
     TICKET_CREATED = 'TICKET_CREATED',
@@ -41,7 +41,7 @@ Implementasi sistem notifikasi in-app dan email yang dipicu oleh event dari Rabb
     SLA_BREACH = 'SLA_BREACH',
   }
   ```
-- [ ] Buat template pesan untuk setiap tipe (Bahasa Indonesia):
+- [x] Buat template pesan untuk setiap tipe (Bahasa Indonesia):
   ```
   TICKET_CREATED: "Tiket baru #{ticketNumber} telah dibuat oleh {creatorName}"
   TICKET_ASSIGNED: "Tiket #{ticketNumber} telah ditugaskan kepada Anda"
@@ -52,26 +52,26 @@ Implementasi sistem notifikasi in-app dan email yang dipicu oleh event dari Rabb
 
 #### 4.3.1 Get Notifications — `GET /api/v1/notifications`
 
-- [ ] Auth required, semua role
-- [ ] Filter: `isRead` (boolean), `type` (string)
-- [ ] Pagination, sorted by `createdAt DESC`
-- [ ] Include `unreadCount` di meta response
+- [x] Auth required, semua role
+- [x] Filter: `isRead` (boolean), `type` (string)
+- [x] Pagination, sorted by `createdAt DESC`
+- [x] Include `unreadCount` di meta response
 
 #### 4.3.2 Mark as Read — `PATCH /api/v1/notifications/:id/read`
 
-- [ ] Auth required
-- [ ] Validasi notification milik user yang sedang login
-- [ ] Set `isRead = true`
+- [x] Auth required
+- [x] Validasi notification milik user yang sedang login
+- [x] Set `isRead = true`
 
 #### 4.3.3 Mark All as Read — `PATCH /api/v1/notifications/read-all`
 
-- [ ] Auth required
-- [ ] Set semua notifikasi user yang belum dibaca menjadi `isRead = true`
+- [x] Auth required
+- [x] Set semua notifikasi user yang belum dibaca menjadi `isRead = true`
 
 ### 4.4 Notification Worker (RabbitMQ Consumer)
 
-- [ ] Buat `NotificationWorker` yang subscribe ke queue `notification-worker`
-- [ ] Handle routing key & event:
+- [x] Buat `NotificationWorker` yang subscribe ke queue `notification-worker`
+- [x] Handle routing key & event:
   | Event | Penerima Notifikasi | Channel |
   |---|---|---|
   | `ticket.created` | Supervisor terkait department | In-app + Email |
@@ -82,32 +82,32 @@ Implementasi sistem notifikasi in-app dan email yang dipicu oleh event dari Rabb
   | `ticket.rejected` | Employee pemilik | In-app + Email |
   | `sla.warning` | Supervisor | In-app + Email |
   | `sla.breach` | Supervisor + Administrator | In-app + Email |
-- [ ] Implementasi idempotency: cek `eventId` agar tidak proses event duplikat
-- [ ] Manual ACK setelah berhasil proses
+- [x] Implementasi idempotency: cek `eventId` agar tidak proses event duplikat
+- [x] Manual ACK setelah berhasil proses
 
 ### 4.5 Email Notification
 
-- [ ] Buat template email HTML untuk setiap tipe notifikasi
-- [ ] Gunakan `EmailService` yang sudah dibuat di Phase 2
-- [ ] Kirim email async (tidak blocking worker)
-- [ ] Handle error: jika email gagal kirim, log warning tapi JANGAN retry (agar tidak block worker)
+- [x] Buat template email HTML untuk setiap tipe notifikasi
+- [x] Gunakan `EmailService` yang sudah dibuat di Phase 2
+- [x] Kirim email async (tidak blocking worker)
+- [x] Handle error: jika email gagal kirim, log warning tapi JANGAN retry (agar tidak block worker)
 
 ### 4.6 User Notification Preferences (FR-NOTIF-03)
 
-- [ ] Tambah field di model User (atau tabel terpisah `NotificationPreference`):
+- [x] Tambah field di model User (atau tabel terpisah `NotificationPreference`):
   - `emailNotificationEnabled` — boolean, default `true`
-- [ ] Worker harus cek preference user sebelum kirim email
-- [ ] Endpoint update preference: `PATCH /api/v1/users/me/notification-preferences`
+- [x] Worker harus cek preference user sebelum kirim email
+- [x] Endpoint update preference: `PATCH /api/v1/users/me/notification-preferences`
 
 ---
 
 ## Definition of Done
 
-- [ ] Notifikasi in-app tersimpan di database saat event terjadi
-- [ ] Email terkirim ke user (via Mailtrap di development)
-- [ ] User bisa melihat list notifikasi dengan filter & pagination
-- [ ] User bisa mark as read (single & all)
-- [ ] Worker idempotent (event duplikat tidak membuat notifikasi ganda)
-- [ ] Preference email bisa diubah per user
-- [ ] Swagger docs lengkap
-- [ ] Unit test: notification creation, preference check, mark as read
+- [x] Notifikasi in-app tersimpan di database saat event terjadi
+- [x] Email terkirim ke user (via Mailtrap di development)
+- [x] User bisa melihat list notifikasi dengan filter & pagination
+- [x] User bisa mark as read (single & all)
+- [x] Worker idempotent (event duplikat tidak membuat notifikasi ganda)
+- [x] Preference email bisa diubah per user
+- [x] Swagger docs lengkap
+- [x] Unit test: notification creation, preference check, mark as read
