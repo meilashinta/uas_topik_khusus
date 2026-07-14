@@ -44,4 +44,19 @@ export class EmailService {
       throw error;
     }
   }
+
+  async sendEmail(to: string, subject: string, html: string): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: '"HelpDeskPro" <noreply@helpdeskpro.local>',
+        to,
+        subject,
+        html,
+      });
+      this.logger.log(`Email sent to ${to} for subject: ${subject}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${to}`, error);
+      throw error;
+    }
+  }
 }

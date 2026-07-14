@@ -309,6 +309,7 @@ export class UsersService {
         phone: true,
         avatarUrl: true,
         isActive: true,
+        emailNotificationEnabled: true,
         role: { select: { id: true, name: true } },
         department: { select: { id: true, name: true } },
       },
@@ -317,5 +318,22 @@ export class UsersService {
     await this.redisService.del(`user:${userId}`);
 
     return user;
+  }
+
+  async updateNotificationPreference(id: string, emailNotificationEnabled: boolean) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { emailNotificationEnabled },
+      select: { emailNotificationEnabled: true }
+    });
+
+    await this.redisService.del(`user:${id}`);
+    
+    return updatedUser;
   }
 }

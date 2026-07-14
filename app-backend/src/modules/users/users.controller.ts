@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserFilterDto } from './dto/user-filter.dto';
+import { UpdateNotificationPreferenceDto } from './dto/update-notification-preference.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 
@@ -75,5 +76,15 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Reset password email sent' })
   async resetPassword(@Req() req: any, @Param('id') id: string) {
     return this.usersService.resetPasswordByAdmin(id, req.user.userId, req);
+  }
+
+  @Patch('me/notification-preferences')
+  @ApiOperation({ summary: 'Update current user notification preferences' })
+  @ApiResponse({ status: 200, description: 'Preferences updated successfully.' })
+  updateNotificationPreference(
+    @Req() req: any,
+    @Body() dto: UpdateNotificationPreferenceDto,
+  ) {
+    return this.usersService.updateNotificationPreference(req.user.userId, dto.emailNotificationEnabled);
   }
 }

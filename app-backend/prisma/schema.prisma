@@ -63,9 +63,10 @@ model User {
   departmentId   String             @db.Uuid
   phone          String?
   avatarUrl      String?
-  isActive       Boolean            @default(true)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  isActive                 Boolean            @default(true)
+  emailNotificationEnabled Boolean            @default(true)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
   role           Role               @relation(fields: [roleId], references: [id])
   department     Department         @relation(fields: [departmentId], references: [id])
   ticketsCreated Ticket[]           @relation("TicketCreator")
@@ -209,6 +210,7 @@ model Notification {
   type      String
   title     String
   message   String
+  eventId   String?  @unique
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
