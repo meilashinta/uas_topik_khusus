@@ -15,6 +15,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
+import { StorageModule } from './infrastructure/storage/storage.module';
 
 import { CommonModule } from './common/common.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
@@ -22,8 +23,16 @@ import { RedisModule } from './infrastructure/redis/redis.module';
 import { RabbitMQModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { HealthModule } from './modules/health/health.module';
 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
-  imports: [PrismaModule, CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, RolesModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
+    PrismaModule, CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, RolesModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule, StorageModule],
   controllers: [AppController],
   providers: [AppService],
 })

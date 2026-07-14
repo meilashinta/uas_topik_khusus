@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
@@ -17,6 +17,8 @@ import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentFilterDto } from './dto/comment-filter.dto';
 import { Prisma, TicketStatus, RoleName } from '@prisma/client';
+import { IFileStorageServiceToken } from '../../infrastructure/storage/storage.interface';
+import type { IFileStorageService } from '../../infrastructure/storage/storage.interface';
 
 @Injectable()
 export class TicketsService {
@@ -27,6 +29,7 @@ export class TicketsService {
     private readonly eventPublisher: EventPublisher,
     private readonly redisService: RedisService,
     private readonly stateMachine: TicketStateMachineService,
+    @Inject(IFileStorageServiceToken) private readonly storageService: IFileStorageService,
   ) {}
 
   async create(createDto: CreateTicketDto, user: any, req: any) {
@@ -445,6 +448,92 @@ export class TicketsService {
     });
 
     return comments;
+  }
+
+  async uploadAttachment(id: string, file: Express.Multer.File, user: any, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ 
+      where: { id }, 
+      include: { 
+        assignments: { where: { isActive: true } },
+        _count: { select: { attachments: true } }
+      } 
+    });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    this.verifyOwnership(ticket, user);
+
+    if (ticket._count.attachments >= 5) {
+      throw new BadRequestException('Maksimum 5 lampiran per tiket');
+    }
+
+    const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${file.originalname}`;
+    const fileUrl = await this.storageService.upload(file, uniqueFilename);
+
+    const attachment = await this.prisma.ticketAttachment.create({
+      data: {
+        ticketId: id,
+        uploadedById: user.userId,
+        fileName: file.originalname,
+        fileUrl,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+      }
+    });
+
+    await this.auditLogService.logAction(
+      'ATTACHMENT_UPLOADED',
+      'TicketAttachment',
+      attachment.id,
+      user.userId,
+      { fileName: attachment.fileName, fileSize: attachment.fileSize },
+      req
+    );
+
+    return attachment;
+  }
+
+  async downloadAttachment(id: string, attachmentId: string, user: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { assignments: { where: { isActive: true } } } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    this.verifyOwnership(ticket, user);
+
+    const attachment = await this.prisma.ticketAttachment.findUnique({ where: { id: attachmentId, ticketId: id } });
+    if (!attachment) throw new NotFoundException('Attachment not found');
+
+    const buffer = await this.storageService.download(attachment.fileUrl);
+    return { buffer, attachment };
+  }
+
+  async deleteAttachment(id: string, attachmentId: string, user: any, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { assignments: { where: { isActive: true } } } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    const attachment = await this.prisma.ticketAttachment.findUnique({ where: { id: attachmentId, ticketId: id } });
+    if (!attachment) throw new NotFoundException('Attachment not found');
+
+    const isOwner = attachment.uploadedById === user.userId;
+    const isSupervisorOrAdmin = user.role === RoleName.SUPERVISOR || user.role === RoleName.ADMINISTRATOR;
+
+    if (!isOwner && !isSupervisorOrAdmin) {
+      throw new ForbiddenException('You do not have permission to delete this attachment');
+    }
+
+    if (ticket.status === TicketStatus.CLOSED || ticket.status === TicketStatus.REJECTED || ticket.status === TicketStatus.CANCELLED) {
+      throw new BadRequestException('Cannot delete attachments from closed or rejected tickets');
+    }
+
+    await this.storageService.delete(attachment.fileUrl);
+    await this.prisma.ticketAttachment.delete({ where: { id: attachmentId } });
+
+    await this.auditLogService.logAction(
+      'ATTACHMENT_DELETED',
+      'TicketAttachment',
+      attachment.id,
+      user.userId,
+      { fileName: attachment.fileName },
+      req
+    );
   }
 
   private verifyOwnership(ticket: any, user: any) {

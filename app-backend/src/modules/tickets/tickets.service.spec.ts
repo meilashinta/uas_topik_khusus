@@ -6,6 +6,7 @@ import { EventPublisher } from '../../infrastructure/rabbitmq/event-publisher';
 import { RedisService } from '../../infrastructure/redis/redis.service';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
 import { TicketStateMachineService } from './utils/ticket-state-machine.service';
+import { IFileStorageServiceToken } from '../../infrastructure/storage/storage.interface';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { TicketStatus, RoleName } from '@prisma/client';
 
@@ -17,6 +18,7 @@ describe('TicketsService', () => {
   let redisMock: any;
   let ticketGeneratorMock: any;
   let stateMachineMock: any;
+  let storageMock: any;
 
   beforeEach(async () => {
     prismaMock = {
@@ -30,7 +32,15 @@ describe('TicketsService', () => {
     eventPublisherMock = { publishTicketEvent: jest.fn() };
     redisMock = { get: jest.fn(), set: jest.fn(), del: jest.fn() };
     ticketGeneratorMock = { generate: jest.fn() };
-    stateMachineMock = { validateTransition: jest.fn(), validateTransitionRole: jest.fn() };
+    stateMachineMock = {
+      validateTransition: jest.fn(),
+      validateTransitionRole: jest.fn(),
+    };
+    storageMock = {
+      upload: jest.fn(),
+      download: jest.fn(),
+      delete: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -41,6 +51,7 @@ describe('TicketsService', () => {
         { provide: RedisService, useValue: redisMock },
         { provide: TicketNumberGenerator, useValue: ticketGeneratorMock },
         { provide: TicketStateMachineService, useValue: stateMachineMock },
+        { provide: IFileStorageServiceToken, useValue: storageMock },
       ],
     }).compile();
 
@@ -145,6 +156,26 @@ describe('TicketsService', () => {
       expect(prismaMock.ticketComment.findMany).toHaveBeenCalledWith(expect.objectContaining({
         where: { ticketId: 't1', isInternal: false }
       }));
+    });
+  });
+
+  describe('uploadAttachment', () => {
+    it('should throw BadRequestException if ticket already has 5 attachments', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'emp1', _count: { attachments: 5 } });
+      const file = { originalname: 'test.jpg', size: 100, mimetype: 'image/jpeg' } as Express.Multer.File;
+
+      await expect(service.uploadAttachment('t1', file, { userId: 'emp1', role: RoleName.EMPLOYEE }, {}))
+        .rejects.toThrow(BadRequestException);
+    });
+
+    it('should upload file and save attachment metadata', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'emp1', _count: { attachments: 2 } });
+      prismaMock.ticketAttachment = { create: jest.fn().mockResolvedValue({ id: 'att1', fileName: 'test.jpg' }) };
+      
+      const file = { originalname: 'test.jpg', size: 100, mimetype: 'image/jpeg' } as Express.Multer.File;
+      await service.uploadAttachment('t1', file, { userId: 'emp1', role: RoleName.EMPLOYEE }, {});
+      
+      expect(prismaMock.ticketAttachment.create).toHaveBeenCalled();
     });
   });
 

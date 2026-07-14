@@ -14,6 +14,10 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentFilterDto } from './dto/comment-filter.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
+import { Res, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
+import type { Response } from 'express';
 
 @ApiTags('Tickets')
 @ApiBearerAuth()
@@ -112,5 +116,42 @@ export class TicketsController {
   @ApiOperation({ summary: 'Get comments of a ticket' })
   async getComments(@Req() req: any, @Param('id') id: string, @Query() filterDto: CommentFilterDto) {
     return this.ticketsService.getComments(id, filterDto, req.user);
+  }
+
+  @Post(':id/attachments')
+  @ApiOperation({ summary: 'Upload an attachment to a ticket' })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAttachment(
+    @Req() req: any, 
+    @Param('id') id: string, 
+    @UploadedFile(FileValidationPipe) file: Express.Multer.File
+  ) {
+    return this.ticketsService.uploadAttachment(id, file, req.user, req);
+  }
+
+  @Get(':id/attachments/:attachmentId')
+  @ApiOperation({ summary: 'Download an attachment' })
+  async downloadAttachment(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Param('attachmentId') attachmentId: string,
+    @Res() res: Response
+  ) {
+    const { buffer, attachment } = await this.ticketsService.downloadAttachment(id, attachmentId, req.user);
+    res.set({
+      'Content-Type': attachment.mimeType,
+      'Content-Disposition': `attachment; filename="${attachment.fileName}"`,
+    });
+    res.send(buffer);
+  }
+
+  @Delete(':id/attachments/:attachmentId')
+  @ApiOperation({ summary: 'Delete an attachment' })
+  async deleteAttachment(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Param('attachmentId') attachmentId: string
+  ) {
+    return this.ticketsService.deleteAttachment(id, attachmentId, req.user, req);
   }
 }
