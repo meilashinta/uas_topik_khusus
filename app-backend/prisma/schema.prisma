@@ -106,6 +106,7 @@ model TicketPriority {
   slaResolutionMinutes Int
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
+  isActive             Boolean       @default(true)
   tickets              Ticket[]
 }
 
