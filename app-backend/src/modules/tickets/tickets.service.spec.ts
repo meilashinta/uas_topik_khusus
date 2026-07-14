@@ -7,7 +7,7 @@ import { RedisService } from '../../infrastructure/redis/redis.service';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
 import { TicketStateMachineService } from './utils/ticket-state-machine.service';
 import { IFileStorageServiceToken } from '../../infrastructure/storage/storage.interface';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
 import { TicketStatus, RoleName } from '@prisma/client';
 
 describe('TicketsService', () => {
@@ -176,6 +176,38 @@ describe('TicketsService', () => {
       await service.uploadAttachment('t1', file, { userId: 'emp1', role: RoleName.EMPLOYEE }, {});
       
       expect(prismaMock.ticketAttachment.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('submitRating', () => {
+    it('should throw ConflictException if rating already exists', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ 
+        id: 't1', 
+        createdById: 'emp1', 
+        status: TicketStatus.RESOLVED,
+        rating: { id: 'r1' },
+        assignments: [{ technicianId: 'tech1' }] 
+      });
+
+      await expect(service.submitRating('t1', 'emp1', { score: 5 }, {}))
+        .rejects.toThrow(ConflictException);
+    });
+
+    it('should create rating if valid', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ 
+        id: 't1', 
+        createdById: 'emp1', 
+        status: TicketStatus.RESOLVED,
+        rating: null,
+        assignments: [{ technicianId: 'tech1' }] 
+      });
+      prismaMock.rating = { create: jest.fn().mockResolvedValue({ id: 'r1', score: 5 }) };
+
+      await service.submitRating('t1', 'emp1', { score: 5 }, {});
+      
+      expect(prismaMock.rating.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ score: 5, ratedById: 'emp1' })
+      }));
     });
   });
 

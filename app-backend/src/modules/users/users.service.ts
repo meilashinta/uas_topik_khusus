@@ -290,6 +290,55 @@ export class UsersService {
     return mappedTechnicians;
   }
 
+  async getTechnicianRatings() {
+    const ratings = await this.prisma.rating.findMany({
+      include: {
+        ticket: {
+          include: {
+            assignments: { where: { isActive: true } }
+          }
+        }
+      }
+    });
+
+    // Group by technician
+    const technicianStats: Record<string, { totalScore: number; count: number; distribution: Record<number, number> }> = {};
+
+    for (const r of ratings) {
+      const assignment = r.ticket?.assignments?.[0];
+      if (assignment) {
+        const techId = assignment.technicianId;
+        if (!technicianStats[techId]) {
+          technicianStats[techId] = { totalScore: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+        }
+        technicianStats[techId].totalScore += r.score;
+        technicianStats[techId].count += 1;
+        if (r.score >= 1 && r.score <= 5) {
+          technicianStats[techId].distribution[r.score] += 1;
+        }
+      }
+    }
+
+    const techIds = Object.keys(technicianStats);
+    const technicians = await this.prisma.user.findMany({
+      where: { id: { in: techIds } },
+      select: { id: true, name: true, department: { select: { name: true } } }
+    });
+
+    return techIds.map(techId => {
+      const stats = technicianStats[techId];
+      const tech = technicians.find(t => t.id === techId);
+      return {
+        technicianId: techId,
+        technicianName: tech?.name,
+        departmentName: tech?.department?.name,
+        averageScore: stats.count > 0 ? stats.totalScore / stats.count : 0,
+        totalRatings: stats.count,
+        distribution: stats.distribution
+      };
+    });
+  }
+
   async getAuditLogs(userId: string) {
     return this.findOne(userId);
   }

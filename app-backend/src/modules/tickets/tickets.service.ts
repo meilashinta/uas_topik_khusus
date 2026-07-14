@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
@@ -16,6 +16,7 @@ import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentFilterDto } from './dto/comment-filter.dto';
+import { CreateRatingDto } from './dto/create-rating.dto';
 import { Prisma, TicketStatus, RoleName } from '@prisma/client';
 import { IFileStorageServiceToken } from '../../infrastructure/storage/storage.interface';
 import type { IFileStorageService } from '../../infrastructure/storage/storage.interface';
@@ -534,6 +535,52 @@ export class TicketsService {
       { fileName: attachment.fileName },
       req
     );
+  }
+
+  async submitRating(ticketId: string, userId: string, dto: CreateRatingDto, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ 
+      where: { id: ticketId },
+      include: {
+        rating: true,
+        assignments: { where: { isActive: true }, include: { technician: true } }
+      }
+    });
+
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    if (ticket.createdById !== userId) throw new ForbiddenException('Only the ticket creator can submit a rating');
+    
+    if (ticket.status !== TicketStatus.RESOLVED && ticket.status !== TicketStatus.CLOSED) {
+      throw new BadRequestException('Rating can only be submitted for resolved or closed tickets');
+    }
+
+    if (ticket.rating) {
+      throw new ConflictException('Rating already exists for this ticket');
+    }
+
+    const assignment = ticket.assignments[0];
+    if (!assignment) {
+      throw new BadRequestException('Cannot rate a ticket that was never assigned to a technician');
+    }
+
+    const rating = await this.prisma.rating.create({
+      data: {
+        score: dto.score,
+        feedback: dto.feedback,
+        ticketId,
+        ratedById: userId,
+      }
+    });
+
+    await this.auditLogService.logAction(
+      'TICKET_RATED',
+      'Ticket',
+      ticketId,
+      userId,
+      { score: dto.score },
+      req
+    );
+
+    return rating;
   }
 
   private verifyOwnership(ticket: any, user: any) {

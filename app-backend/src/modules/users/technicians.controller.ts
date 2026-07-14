@@ -14,9 +14,16 @@ export class TechniciansController {
 
   @Get('workload')
   @Roles(RoleName.SUPERVISOR, RoleName.ADMINISTRATOR)
-  @ApiOperation({ summary: 'Get workload of all technicians (Active tickets & Resolved today)' })
-  @ApiResponse({ status: 200, description: 'Return list of technicians with workload data' })
+  @ApiOperation({ summary: 'Get workload of all technicians' })
+  @ApiResponse({ status: 200, description: 'Return array of technicians with workload' })
   async getWorkload() {
     return this.usersService.getTechnicianWorkload();
+  }
+
+  @Get('ratings')
+  @Roles(RoleName.ADMINISTRATOR, RoleName.SUPERVISOR)
+  @ApiOperation({ summary: 'Get rating statistics for technicians' })
+  async getRatings() {
+    return this.usersService.getTechnicianRatings();
   }
 }

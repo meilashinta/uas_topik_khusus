@@ -12,6 +12,7 @@ import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentFilterDto } from './dto/comment-filter.dto';
+import { CreateRatingDto } from './dto/create-rating.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -153,5 +154,16 @@ export class TicketsController {
     @Param('attachmentId') attachmentId: string
   ) {
     return this.ticketsService.deleteAttachment(id, attachmentId, req.user, req);
+  }
+
+  @Post(':id/rating')
+  @Roles(RoleName.EMPLOYEE)
+  @ApiOperation({ summary: 'Submit a rating for a resolved or closed ticket' })
+  async submitRating(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: CreateRatingDto
+  ) {
+    return this.ticketsService.submitRating(id, req.user.userId, dto, req);
   }
 }
