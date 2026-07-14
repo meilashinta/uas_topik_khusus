@@ -28,6 +28,7 @@ enum TicketStatus {
   RESOLVED
   CLOSED
   REJECTED
+  CANCELLED
 }
 
 model Role {
