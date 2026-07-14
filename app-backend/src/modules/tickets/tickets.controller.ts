@@ -17,6 +17,8 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
+import { AuditAction } from '../../common/decorators/audit-action.decorator';
+import { AuditLogAction } from '../audit-log/audit-log.service';
 import { Res, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
 import type { Response } from 'express';
 
@@ -28,7 +30,8 @@ export class TicketsController {
 
   @Roles(RoleName.EMPLOYEE)
   @Post()
-  @ApiOperation({ summary: 'Create new ticket (EMPLOYEE only)' })
+  @AuditAction(AuditLogAction.TICKET_CREATED)
+  @ApiOperation({ summary: 'Create a new ticket' })
   @ApiResponse({ status: 201, description: 'Ticket created successfully' })
   async create(@Req() req: any, @Body() createTicketDto: CreateTicketDto) {
     return this.ticketsService.create(createTicketDto, req.user, req);
@@ -88,14 +91,16 @@ export class TicketsController {
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Generic status update (Enforces State Machine)' })
+  @AuditAction(AuditLogAction.TICKET_STATUS_CHANGED)
+  @ApiOperation({ summary: 'Update ticket status' })
   async updateStatus(@Req() req: any, @Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     return this.ticketsService.updateStatus(id, updateStatusDto, req.user, req);
   }
 
-  @Roles(RoleName.SUPERVISOR, RoleName.ADMINISTRATOR)
   @Post(':id/assign')
-  @ApiOperation({ summary: 'Assign a technician to a ticket' })
+  @Roles(RoleName.ADMINISTRATOR, RoleName.SUPERVISOR)
+  @AuditAction(AuditLogAction.TICKET_ASSIGNED)
+  @ApiOperation({ summary: 'Assign a ticket to a technician' })
   async assign(@Req() req: any, @Param('id') id: string, @Body() assignDto: AssignTechnicianDto) {
     return this.ticketsService.assign(id, assignDto, req.user, req);
   }
@@ -158,6 +163,7 @@ export class TicketsController {
 
   @Post(':id/rating')
   @Roles(RoleName.EMPLOYEE)
+  @AuditAction(AuditLogAction.TICKET_RATED)
   @ApiOperation({ summary: 'Submit a rating for a resolved or closed ticket' })
   async submitRating(
     @Req() req: any,

@@ -223,6 +223,7 @@ model Notification {
 model ActivityLog {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String?  @db.Uuid
+  eventId    String?  @unique
   action     String
   entityType String
   entityId   String   @db.Uuid
