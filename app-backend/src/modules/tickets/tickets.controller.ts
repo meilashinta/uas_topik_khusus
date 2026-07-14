@@ -10,6 +10,8 @@ import { ReopenTicketDto } from './dto/reopen-ticket.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentFilterDto } from './dto/comment-filter.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 
@@ -98,5 +100,17 @@ export class TicketsController {
   @ApiOperation({ summary: 'Reassign a technician to a ticket' })
   async reassign(@Req() req: any, @Param('id') id: string, @Body() reassignDto: ReassignTechnicianDto) {
     return this.ticketsService.reassign(id, reassignDto, req.user, req);
+  }
+
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'Add a comment to a ticket' })
+  async addComment(@Req() req: any, @Param('id') id: string, @Body() createCommentDto: CreateCommentDto) {
+    return this.ticketsService.addComment(id, createCommentDto, req.user, req);
+  }
+
+  @Get(':id/comments')
+  @ApiOperation({ summary: 'Get comments of a ticket' })
+  async getComments(@Req() req: any, @Param('id') id: string, @Query() filterDto: CommentFilterDto) {
+    return this.ticketsService.getComments(id, filterDto, req.user);
   }
 }

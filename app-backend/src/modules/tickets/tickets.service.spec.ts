@@ -118,4 +118,34 @@ describe('TicketsService', () => {
     });
   });
 
+  describe('addComment', () => {
+    it('should throw ForbiddenException if employee creates internal comment', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'emp1' });
+      
+      await expect(service.addComment('t1', { content: 'test', isInternal: true }, { userId: 'emp1', role: RoleName.EMPLOYEE }, {}))
+        .rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow employee to create public comment', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'emp1' });
+      prismaMock.ticketComment = { create: jest.fn().mockResolvedValue({}) };
+      
+      await service.addComment('t1', { content: 'test', isInternal: false }, { userId: 'emp1', role: RoleName.EMPLOYEE }, {});
+      expect(prismaMock.ticketComment.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('getComments', () => {
+    it('should force isInternal=false for employee', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'emp1' });
+      prismaMock.ticketComment = { findMany: jest.fn().mockResolvedValue([]) };
+
+      await service.getComments('t1', { isInternal: true }, { userId: 'emp1', role: RoleName.EMPLOYEE });
+      
+      expect(prismaMock.ticketComment.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { ticketId: 't1', isInternal: false }
+      }));
+    });
+  });
+
 });

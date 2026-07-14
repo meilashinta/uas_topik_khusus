@@ -14,6 +14,8 @@ import { ReopenTicketDto } from './dto/reopen-ticket.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentFilterDto } from './dto/comment-filter.dto';
 import { Prisma, TicketStatus, RoleName } from '@prisma/client';
 
 @Injectable()
@@ -388,6 +390,61 @@ export class TicketsService {
     this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketReassigned', ticketId: reassignedTicket.id, ticketNumber: reassignedTicket.ticketNumber, assignedTo: reassignDto.technicianId, assignedBy: user.userId } as any);
     await this.redisService.del(`ticket:${id}`);
     return reassignedTicket;
+  }
+
+  async addComment(id: string, createCommentDto: CreateCommentDto, user: any, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { assignments: { where: { isActive: true } } } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    this.verifyOwnership(ticket, user);
+
+    if (user.role === RoleName.EMPLOYEE && createCommentDto.isInternal) {
+      throw new ForbiddenException('Employees cannot create internal comments');
+    }
+
+    const comment = await this.prisma.ticketComment.create({
+      data: {
+        ticketId: id,
+        userId: user.userId,
+        content: createCommentDto.content,
+        isInternal: createCommentDto.isInternal ?? false,
+      },
+      include: {
+        user: { select: { name: true, role: { select: { name: true } } } }
+      }
+    });
+
+    await this.redisService.del(`ticket:${id}`);
+    
+    // Optional: publish event for real-time socket
+    // this.eventPublisher.publishTicketEvent('ticket.commented', { ... });
+
+    return comment;
+  }
+
+  async getComments(id: string, filterDto: CommentFilterDto, user: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { assignments: { where: { isActive: true } } } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    this.verifyOwnership(ticket, user);
+
+    const where: Prisma.TicketCommentWhereInput = { ticketId: id };
+
+    if (user.role === RoleName.EMPLOYEE) {
+      where.isInternal = false;
+    } else if (filterDto.isInternal !== undefined) {
+      where.isInternal = filterDto.isInternal;
+    }
+
+    const comments = await this.prisma.ticketComment.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: { select: { id: true, name: true, role: { select: { name: true } } } }
+      }
+    });
+
+    return comments;
   }
 
   private verifyOwnership(ticket: any, user: any) {
