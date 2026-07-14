@@ -71,6 +71,53 @@ describe('UsersService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('findAll', () => {
+    it('should return paginated users based on filter', async () => {
+      prismaMock.user.findMany.mockResolvedValue([{ id: 'u1' }]);
+      prismaMock.user.count.mockResolvedValue(1);
+
+      const result = await service.findAll({ page: 1, limit: 10, roleId: 'r1', departmentId: 'd1', search: 'john' });
+      
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+      expect(prismaMock.user.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          roleId: 'r1',
+          departmentId: 'd1',
+          OR: [
+            { name: { contains: 'john', mode: 'insensitive' } },
+            { email: { contains: 'john', mode: 'insensitive' } },
+          ],
+        })
+      }));
+    });
+  });
+
+  describe('findOne', () => {
+    it('should throw NotFoundException if user not found', async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOne('u1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return user from redis if cached', async () => {
+      redisMock.get.mockResolvedValue(JSON.stringify({ id: 'u1', name: 'cached' }));
+      const result = await service.findOne('u1');
+      expect(result.name).toBe('cached');
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('should return user from DB and cache it if not in redis', async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1', name: 'db' });
+
+      const result = await service.findOne('u1');
+      expect(result.name).toBe('db');
+      expect(redisMock.set).toHaveBeenCalled();
+    });
+  });
+
   describe('create', () => {
     it('should throw error if email already exists', async () => {
       prismaMock.user.findUnique.mockResolvedValue({ id: '1', email: 'test@example.com' });
@@ -112,6 +159,22 @@ describe('UsersService', () => {
       );
       expect(redisMock.del).toHaveBeenCalledWith('user:u1');
     });
+
+    it('should throw BadRequestException if updating to inactive department', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1', roleId: 'r1', departmentId: 'd1' });
+      prismaMock.department.findUnique.mockResolvedValue({ isActive: false });
+      
+      await expect(service.update('u1', { departmentId: 'd2' } as any, 'admin1', {} as any)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should handle department change in update', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1', departmentId: 'd1' });
+      prismaMock.department.findUnique.mockResolvedValue({ id: 'd2', isActive: true });
+      prismaMock.user.update.mockResolvedValue({ id: 'u1' });
+
+      await service.update('u1', { departmentId: 'd2' } as any, 'admin1', {} as any);
+      expect(prismaMock.department.findUnique).toHaveBeenCalled();
+    });
   });
 
   describe('softDelete', () => {
@@ -139,6 +202,22 @@ describe('UsersService', () => {
     });
   });
 
+  describe('resetPasswordByAdmin', () => {
+    it('should throw NotFoundException if user not found', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      await expect(service.resetPasswordByAdmin('u1', 'admin1', {})).rejects.toThrow(require('@nestjs/common').NotFoundException);
+    });
+
+    it('should reset password by admin', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1', email: 'test@example.com' });
+      await service.resetPasswordByAdmin('u1', 'admin1', {});
+
+      expect(redisMock.set).toHaveBeenCalled();
+      expect(emailMock.sendResetPasswordEmail).toHaveBeenCalled();
+      expect(auditLogMock.logAction).toHaveBeenCalled();
+    });
+  });
+
   describe('getTechnicianWorkload', () => {
     it('should return mapped technicians workload', async () => {
       prismaMock.user.findMany.mockResolvedValue([
@@ -160,4 +239,49 @@ describe('UsersService', () => {
     });
   });
 
+  describe('getTechnicianRatings', () => {
+    it('should aggregate ratings correctly', async () => {
+      prismaMock.rating = {
+        findMany: jest.fn().mockResolvedValue([
+          { score: 5, ticket: { assignments: [{ technicianId: 'tech1' }] } },
+          { score: 3, ticket: { assignments: [{ technicianId: 'tech1' }] } },
+          { score: 0, ticket: { assignments: [{ technicianId: 'tech1' }] } }, // out of range 1-5
+          { score: 5, ticket: null } // missing ticket
+        ])
+      };
+      prismaMock.user.findMany.mockResolvedValue([
+        { id: 'tech1', name: 'Tech 1', department: { name: 'IT' } }
+      ]);
+
+      const result = await service.getTechnicianRatings();
+      expect(result).toHaveLength(1);
+      expect(result[0].averageScore).toBe((5 + 3 + 0) / 3);
+      expect(result[0].totalRatings).toBe(3);
+      expect(result[0].distribution[5]).toBe(1);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should update profile and invalidate cache', async () => {
+      prismaMock.user.update.mockResolvedValue({ id: 'u1' });
+      await service.updateProfile('u1', { name: 'New Name' });
+      expect(prismaMock.user.update).toHaveBeenCalled();
+      expect(redisMock.del).toHaveBeenCalledWith('user:u1');
+    });
+  });
+
+  describe('updateNotificationPreference', () => {
+    it('should throw if user not found', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      await expect(service.updateNotificationPreference('u1', true)).rejects.toThrow();
+    });
+
+    it('should update pref and invalidate cache', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1' });
+      prismaMock.user.update.mockResolvedValue({ emailNotificationEnabled: true });
+      await service.updateNotificationPreference('u1', true);
+      expect(prismaMock.user.update).toHaveBeenCalled();
+      expect(redisMock.del).toHaveBeenCalledWith('user:u1');
+    });
+  });
 });

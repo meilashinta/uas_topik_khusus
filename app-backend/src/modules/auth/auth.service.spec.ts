@@ -25,6 +25,9 @@ describe('AuthService', () => {
       department: {
         findUnique: jest.fn(),
       },
+      role: {
+        findUnique: jest.fn(),
+      },
       passwordHistory: {
         findMany: jest.fn(),
         create: jest.fn(),
@@ -53,6 +56,95 @@ describe('AuthService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('Register', () => {
+    it('should register successfully', async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.department.findUnique.mockResolvedValue({ id: 'dep-1' });
+      prismaMock.role.findUnique.mockResolvedValue({ id: 'r1', name: 'EMPLOYEE' });
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPw');
+      prismaMock.user.create.mockResolvedValue({ id: '1', email: 'test@example.com' });
+
+      const dto = {
+        name: 'Test',
+        email: 'test@example.com',
+        password: 'Password123!',
+        departmentId: 'dep-1'
+      };
+
+      const result = await authService.register(dto);
+      expect(result.id).toBe('1');
+      expect(prismaMock.user.create).toHaveBeenCalled();
+    });
+
+    it('should throw error if email exists', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: '1' });
+      await expect(authService.register({
+        name: 'Test',
+        email: 'test@example.com',
+        password: 'Password123!',
+        departmentId: 'dep-1'
+      })).rejects.toThrow(HttpException); // 409 Conflict
+    });
+  });
+
+  describe('Login', () => {
+    it('should login successfully', async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: '1',
+        email: 'test@test.com',
+        passwordHash: 'hash',
+        role: { name: 'EMPLOYEE' },
+        isActive: true,
+      });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      jwtTokenMock.generateAccessToken.mockReturnValue('acc');
+      jwtTokenMock.generateRefreshToken.mockReturnValue('ref');
+
+      const result = await authService.login({ email: 'test@test.com', password: 'pw' });
+      
+      expect(result.accessToken).toBe('acc');
+      expect(redisMock.del).toHaveBeenCalledWith('ratelimit:login:test@test.com');
+    });
+
+    it('should throw if user inactive', async () => {
+      redisMock.get.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue({
+        isActive: false,
+      });
+
+      await expect(authService.login({ email: 'test@test.com', password: 'pw' }))
+        .rejects.toThrow(HttpException); // 403 Forbidden
+    });
+  });
+
+  describe('Forgot Password', () => {
+    it('should send email if user exists', async () => {
+      prismaMock.user.findUnique.mockResolvedValue({ id: '1', email: 'test@test.com' });
+      
+      const result = await authService.forgotPassword({ email: 'test@test.com' });
+      
+      expect(result.message).toContain('If that email is registered, a reset link will be sent.');
+      expect(redisMock.set).toHaveBeenCalled();
+      expect(emailMock.sendResetPasswordEmail).toHaveBeenCalled();
+    });
+  });
+
+  describe('Reset Password', () => {
+    it('should reset password successfully', async () => {
+      redisMock.get.mockResolvedValue('test@test.com');
+      prismaMock.user.findUnique.mockResolvedValue({ id: '1' });
+      prismaMock.passwordHistory.findMany.mockResolvedValue([]);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('newhash');
+
+      const result = await authService.resetPassword({ token: 'abc', newPassword: 'NewPassword123!' });
+      
+      expect(result.message).toBe('Password has been reset successfully');
+      expect(prismaMock.user.update).toHaveBeenCalled();
+      expect(redisMock.del).toHaveBeenCalledWith('reset:abc');
+    });
   });
 
   describe('Login Rate Limit', () => {

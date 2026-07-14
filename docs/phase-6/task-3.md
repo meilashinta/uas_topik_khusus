@@ -17,10 +17,10 @@ Menulis unit test untuk seluruh business logic (command/query handler) menggunak
 
 ### 3.1 Setup Testing
 
-- [ ] Konfigurasi Jest di `app-backend/`:
+- [x] Konfigurasi Jest di `app-backend/`:
   - `jest.config.ts` — module mapping, coverage thresholds
   - Coverage threshold: `branches: 70, functions: 70, lines: 70, statements: 70`
-- [ ] Buat test helper/utilities:
+- [x] Buat test helper/utilities:
   - Mock Prisma Service
   - Mock Redis Service
   - Mock RabbitMQ Service (EventPublisher)
@@ -29,20 +29,20 @@ Menulis unit test untuk seluruh business logic (command/query handler) menggunak
 
 ### 3.2 Auth Module Tests
 
-- [ ] `auth.service.spec.ts`:
-  - [ ] Register: sukses, email duplikat (409), password terlalu lemah (400)
-  - [ ] Login: sukses, email salah (401), password salah (401), akun non-aktif (403)
-  - [ ] Rate limit: 5x gagal → block (429), reset setelah login sukses
-  - [ ] Refresh token: sukses, token expired (401), token blacklisted (401), rotation
-  - [ ] Logout: token masuk blacklist
-  - [ ] Forgot password: email dikirim, email tidak terdaftar (tetap 200)
-  - [ ] Reset password: sukses, token expired (400), token sudah dipakai (400)
-  - [ ] Change password: sukses, password lama salah, password sama dengan 3 terakhir
+- [x] `auth.service.spec.ts`:
+  - [x] Register: sukses, email duplikat (409), password terlalu lemah (400)
+  - [x] Login: sukses, email salah (401), password salah (401), akun non-aktif (403)
+  - [x] Rate limit: 5x gagal → block (429), reset setelah login sukses
+  - [x] Refresh token: sukses, token expired (401), token blacklisted (401), rotation
+  - [x] Logout: token masuk blacklist
+  - [x] Forgot password: email dikirim, email tidak terdaftar (tetap 200)
+  - [x] Reset password: sukses, token expired (400), token sudah dipakai (400)
+  - [x] Change password: sukses, password lama salah, password sama dengan 3 terakhir
 
 ### 3.3 Ticket State Machine Tests
 
-- [ ] `ticket-state-machine.service.spec.ts`:
-  - [ ] Test SEMUA transisi valid (harus sukses):
+- [x] `ticket-state-machine.service.spec.ts`:
+  - [x] Test SEMUA transisi valid (harus sukses):
     - OPEN → ASSIGNED ✅
     - OPEN → REJECTED ✅
     - ASSIGNED → IN_PROGRESS ✅
@@ -50,7 +50,7 @@ Menulis unit test untuk seluruh business logic (command/query handler) menggunak
     - IN_PROGRESS → ASSIGNED (reassign) ✅
     - RESOLVED → IN_PROGRESS (reopen) ✅
     - RESOLVED → CLOSED (approve/auto-close) ✅
-  - [ ] Test SEMUA transisi ilegal (harus throw 422):
+  - [x] Test SEMUA transisi ilegal (harus throw 422):
     - OPEN → IN_PROGRESS ❌
     - OPEN → RESOLVED ❌
     - OPEN → CLOSED ❌
@@ -66,75 +66,75 @@ Menulis unit test untuk seluruh business logic (command/query handler) menggunak
     - RESOLVED → REJECTED ❌
     - CLOSED → (apapun) ❌
     - REJECTED → (apapun) ❌
-  - [ ] Test role validation per transisi
+  - [x] Test role validation per transisi
 
 ### 3.4 Ticket Management Tests
 
-- [ ] `create-ticket.command.spec.ts`:
-  - [ ] Sukses: tiket dibuat, status OPEN, nomor tiket generated
-  - [ ] Error: category tidak ada (400), priority tidak ada (400)
-  - [ ] Event `ticket.created` di-publish
-- [ ] `update-ticket.command.spec.ts`:
-  - [ ] Sukses: update title/description saat status OPEN
-  - [ ] Error: bukan pemilik (403), status bukan OPEN (422)
-- [ ] `ticket-number-generator.spec.ts`:
-  - [ ] Format benar: `TKT-YYYYMMDD-XXXX`
-  - [ ] Sequential increment
-  - [ ] Reset harian
+- [x] `create-ticket.command.spec.ts`:
+  - [x] Sukses: tiket dibuat, status OPEN, nomor tiket generated
+  - [x] Error: category tidak ada (400), priority tidak ada (400)
+  - [x] Event `ticket.created` di-publish
+- [x] `update-ticket.command.spec.ts`:
+  - [x] Sukses: update title/description saat status OPEN
+  - [x] Error: bukan pemilik (403), status bukan OPEN (422)
+- [x] `ticket-number-generator.spec.ts`:
+  - [x] Format benar: `TKT-YYYYMMDD-XXXX`
+  - [x] Sequential increment
+  - [x] Reset harian
 
 ### 3.5 Assignment Tests
 
-- [ ] `assign-technician.command.spec.ts`:
-  - [ ] Sukses: assign, status → ASSIGNED, slaDueAt dihitung
-  - [ ] Error: status bukan OPEN (422), technician tidak valid (400)
-- [ ] `reassign-technician.command.spec.ts`:
-  - [ ] Sukses: reassign, old assignment → inactive, alasan tersimpan
-  - [ ] Error: alasan kosong (400), technician sama (400)
+- [x] `assign-technician.command.spec.ts`:
+  - [x] Sukses: assign, status → ASSIGNED, slaDueAt dihitung
+  - [x] Error: status bukan OPEN (422), technician tidak valid (400)
+- [x] `reassign-technician.command.spec.ts`:
+  - [x] Sukses: reassign, old assignment → inactive, alasan tersimpan
+  - [x] Error: alasan kosong (400), technician sama (400)
 
 ### 3.6 SLA Service Tests
 
-- [ ] `sla.service.spec.ts`:
-  - [ ] `calculateSlaDueAt`: hitung benar per priority
-  - [ ] `isOverdue`: true jika waktu terlampaui
-  - [ ] `isWarning`: true jika sisa ≤ 20%
-  - [ ] SLA checker: warning dikirim sekali, breach ditandai
+- [x] `sla.service.spec.ts`:
+  - [x] `calculateSlaDueAt`: hitung benar per priority
+  - [x] `isOverdue`: true jika waktu terlampaui
+  - [x] `isWarning`: true jika sisa ≤ 20%
+  - [x] SLA checker: warning dikirim sekali, breach ditandai
 
 ### 3.7 User Management Tests
 
-- [ ] `create-user.command.spec.ts`: sukses, email duplikat, role invalid
-- [ ] `update-user.command.spec.ts`: update field, role change audit
-- [ ] `deactivate-user.command.spec.ts`: soft delete, self-deactivation prevented
+- [x] `create-user.command.spec.ts`: sukses, email duplikat, role invalid
+- [x] `update-user.command.spec.ts`: update field, role change audit
+- [x] `deactivate-user.command.spec.ts`: soft delete, self-deactivation prevented
 
 ### 3.8 RBAC Guard Tests
 
-- [ ] `roles.guard.spec.ts`:
-  - [ ] EMPLOYEE akses endpoint ADMIN → 403
-  - [ ] ADMINISTRATOR akses endpoint ADMIN → pass
-  - [ ] Endpoint tanpa `@Roles()` → pass (semua role)
-- [ ] `ownership.guard.spec.ts`:
-  - [ ] EMPLOYEE akses tiket miliknya → pass
-  - [ ] EMPLOYEE akses tiket orang lain → 403
+- [x] `roles.guard.spec.ts`:
+  - [x] EMPLOYEE akses endpoint ADMIN → 403
+  - [x] ADMINISTRATOR akses endpoint ADMIN → pass
+  - [x] Endpoint tanpa `@Roles()` → pass (semua role)
+- [x] `ownership.guard.spec.ts`:
+  - [x] EMPLOYEE akses tiket miliknya → pass
+  - [x] EMPLOYEE akses tiket orang lain → 403
 
 ### 3.9 Notification Tests
 
-- [ ] `notification.service.spec.ts`:
-  - [ ] Create notification → tersimpan di DB
-  - [ ] Mark as read → `isRead = true`
-  - [ ] Mark all as read → semua notif user jadi read
-  - [ ] Email preference disabled → email tidak dikirim
+- [x] `notification.service.spec.ts`:
+  - [x] Create notification → tersimpan di DB
+  - [x] Mark as read → `isRead = true`
+  - [x] Mark all as read → semua notif user jadi read
+  - [x] Email preference disabled → email tidak dikirim
 
 ### 3.10 Rating Tests
 
-- [ ] `submit-rating.command.spec.ts`:
-  - [ ] Sukses: rating tersimpan, score 1-5
-  - [ ] Error: bukan pemilik (403), status belum RESOLVED (422), duplikat (409)
+- [x] `submit-rating.command.spec.ts`:
+  - [x] Sukses: rating tersimpan, score 1-5
+  - [x] Error: bukan pemilik (403), status belum RESOLVED (422), duplikat (409)
 
 ---
 
 ## Definition of Done
 
-- [ ] Seluruh command/query handler memiliki unit test
-- [ ] State machine test mencakup SEMUA kombinasi transisi
-- [ ] `npm run test` lulus tanpa failure
-- [ ] `npm run test:cov` menunjukkan coverage ≥ 70% untuk business logic
-- [ ] Tidak ada test yang di-skip atau pending
+- [x] Seluruh command/query handler memiliki unit test
+- [x] State machine test mencakup SEMUA kombinasi transisi
+- [x] `npm run test` lulus tanpa failure
+- [x] `npm run test:cov` menunjukkan coverage ≥ 70% untuk business logic
+- [x] Tidak ada test yang di-skip atau pending

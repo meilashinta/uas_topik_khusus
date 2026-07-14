@@ -41,6 +41,30 @@ describe('DepartmentsService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('findAll', () => {
+    it('should return paginated departments', async () => {
+      prismaMock.department.findMany = jest.fn().mockResolvedValue([{ id: 'd1' }]);
+      prismaMock.department.count = jest.fn().mockResolvedValue(1);
+
+      const result = await service.findAll({ page: 1, limit: 10, isActive: true, search: 'Tech' });
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should throw NotFoundException if not found', async () => {
+      prismaMock.department.findUnique.mockResolvedValue(null);
+      await expect(service.findOne('d1')).rejects.toThrow(require('@nestjs/common').NotFoundException);
+    });
+
+    it('should return department', async () => {
+      prismaMock.department.findUnique.mockResolvedValue({ id: 'd1' });
+      const result = await service.findOne('d1');
+      expect(result.id).toBe('d1');
+    });
+  });
+
   describe('create', () => {
     it('should reject creation if code is not unique (case-insensitive)', async () => {
       prismaMock.department.findFirst.mockResolvedValue({ id: '1', code: 'IT' });
@@ -61,6 +85,36 @@ describe('DepartmentsService', () => {
       expect(auditLogMock.logAction).toHaveBeenCalledWith(
         'DEPARTMENT_CREATED', 'Department', '1', 'admin1', expect.any(Object), expect.any(Object)
       );
+    });
+  });
+
+  describe('update', () => {
+    it('should throw error if department not found', async () => {
+      prismaMock.department.findUnique.mockResolvedValue(null);
+      await expect(service.update('d1', {}, 'admin1', {})).rejects.toThrow(require('@nestjs/common').NotFoundException);
+    });
+
+    it('should reject update if code is not unique', async () => {
+      prismaMock.department.findUnique.mockResolvedValue({ id: 'd1', code: 'OLD' });
+      prismaMock.department.findFirst.mockResolvedValue({ id: 'd2', code: 'NEW' });
+      
+      await expect(service.update('d1', { code: 'new' }, 'admin1', {}))
+        .rejects.toThrow(ConflictException);
+    });
+
+    it('should update successfully', async () => {
+      prismaMock.department.findUnique.mockResolvedValue({ id: 'd1', code: 'OLD' });
+      prismaMock.department.findFirst.mockResolvedValue(null);
+      prismaMock.department.update.mockResolvedValue({ id: 'd1', name: 'New' });
+      
+      const result = await service.update('d1', { name: 'New', code: 'new' }, 'admin1', {});
+      
+      expect(result.name).toBe('New');
+      expect(auditLogMock.logAction).toHaveBeenCalled();
+      expect(prismaMock.department.update).toHaveBeenCalledWith({
+        where: { id: 'd1' },
+        data: { name: 'New', code: 'NEW' }
+      });
     });
   });
 

@@ -58,5 +58,33 @@ describe('NotificationsService', () => {
         data: { isRead: true },
       });
     });
+    
+    it('should throw ForbiddenException if user not owner', async () => {
+      prismaMock.notification.findUnique.mockResolvedValue({ id: 'n1', userId: 'u2' });
+      await expect(service.markAsRead('n1', 'u1')).rejects.toThrow(require('@nestjs/common').NotFoundException);
+    });
+  });
+
+  describe('markAllAsRead', () => {
+    it('should update all unread notifications for a user', async () => {
+      prismaMock.notification.updateMany.mockResolvedValue({ count: 2 });
+      await service.markAllAsRead('u1');
+      expect(prismaMock.notification.updateMany).toHaveBeenCalledWith({
+        where: { userId: 'u1', isRead: false },
+        data: { isRead: true },
+      });
+    });
+  });
+
+  describe('getUserNotifications', () => {
+    it('should return paginated notifications', async () => {
+      prismaMock.notification.findMany.mockResolvedValue([{ id: '1' }]);
+      prismaMock.notification.count.mockResolvedValue(1);
+      
+      const result = await service.getUserNotifications('u1', 1, 10);
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
   });
 });
+

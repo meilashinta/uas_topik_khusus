@@ -57,6 +57,21 @@ describe('StatisticsService', () => {
       expect(result.ticketsByStatus[TicketStatus.OPEN]).toBe(5);
       expect(result.ticketsByStatus[TicketStatus.RESOLVED]).toBe(3);
     });
+    it('should parse filters correctly for various periods', async () => {
+      const periods = [DashboardPeriod.TODAY, DashboardPeriod.WEEK, DashboardPeriod.MONTH, DashboardPeriod.CUSTOM];
+      for (const p of periods) {
+        const filter = new DashboardFilterDto();
+        filter.period = p;
+        filter.departmentId = 'd1';
+        filter.technicianId = 't1';
+        if (p === DashboardPeriod.CUSTOM) {
+          filter.dateFrom = '2023-01-01';
+          filter.dateTo = '2023-01-31';
+        }
+        await service.getDashboardSummary(filter);
+      }
+      expect(prismaService.ticket.count).toHaveBeenCalled();
+    });
   });
 
   describe('getSlaCompliance', () => {

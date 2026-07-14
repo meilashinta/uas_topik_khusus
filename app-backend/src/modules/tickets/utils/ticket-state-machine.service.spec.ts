@@ -68,5 +68,53 @@ describe('TicketStateMachineService', () => {
       const ticket = { createdById: 'user1' };
       expect(() => service.validateTransitionRole(TicketStatus.RESOLVED, TicketStatus.IN_PROGRESS, otherUser, ticket)).toThrow(ForbiddenException);
     });
+
+    it('should allow creator to cancel OPEN ticket', () => {
+      const ticket = { createdById: 'user1' };
+      expect(() => service.validateTransitionRole(TicketStatus.OPEN, TicketStatus.CANCELLED, creatorUser, ticket)).not.toThrow();
+    });
+
+    it('should NOT allow other user to cancel OPEN ticket', () => {
+      const ticket = { createdById: 'user1' };
+      expect(() => service.validateTransitionRole(TicketStatus.OPEN, TicketStatus.CANCELLED, otherUser, ticket)).toThrow(ForbiddenException);
+    });
+
+    it('should allow Technician to resolve ticket if assigned', () => {
+      const ticket = { assignments: [{ technicianId: 'tech1', isActive: true }] };
+      expect(() => service.validateTransitionRole(TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, technician, ticket)).not.toThrow();
+    });
+
+    it('should NOT allow non-Technician to resolve ticket', () => {
+      const ticket = { assignments: [{ technicianId: 'user1', isActive: true }] };
+      expect(() => service.validateTransitionRole(TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, creatorUser, ticket)).toThrow(ForbiddenException);
+    });
+
+    it('should NOT allow unassigned Technician to resolve ticket', () => {
+      const ticket = { assignments: [{ technicianId: 'tech2', isActive: true }] };
+      expect(() => service.validateTransitionRole(TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, technician, ticket)).toThrow(ForbiddenException);
+    });
+
+    it('should allow supervisor to reassign IN_PROGRESS ticket', () => {
+      expect(() => service.validateTransitionRole(TicketStatus.IN_PROGRESS, TicketStatus.ASSIGNED, supervisor, {})).not.toThrow();
+    });
+
+    it('should NOT allow technician to reassign IN_PROGRESS ticket', () => {
+      expect(() => service.validateTransitionRole(TicketStatus.IN_PROGRESS, TicketStatus.ASSIGNED, technician, {})).toThrow(ForbiddenException);
+    });
+
+    it('should allow creator to close RESOLVED ticket', () => {
+      const ticket = { createdById: 'user1' };
+      expect(() => service.validateTransitionRole(TicketStatus.RESOLVED, TicketStatus.CLOSED, creatorUser, ticket)).not.toThrow();
+    });
+
+    it('should NOT allow other user to close RESOLVED ticket', () => {
+      const ticket = { createdById: 'user1' };
+      expect(() => service.validateTransitionRole(TicketStatus.RESOLVED, TicketStatus.CLOSED, otherUser, ticket)).toThrow(ForbiddenException);
+    });
+
+    it('should allow SYSTEM to close RESOLVED ticket', () => {
+      const ticket = { createdById: 'user1' };
+      expect(() => service.validateTransitionRole(TicketStatus.RESOLVED, TicketStatus.CLOSED, { role: 'SYSTEM' }, ticket)).not.toThrow();
+    });
   });
 });
