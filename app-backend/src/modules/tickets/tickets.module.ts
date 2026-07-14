@@ -6,11 +6,12 @@ import { AuditLogModule } from '../audit-log/audit-log.module';
 import { RabbitMQModule } from '../../infrastructure/rabbitmq/rabbitmq.module';
 import { RedisModule } from '../../infrastructure/redis/redis.module';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
+import { TicketStateMachineService } from './utils/ticket-state-machine.service';
 
 @Module({
   imports: [PrismaModule, AuditLogModule, RabbitMQModule, RedisModule],
   controllers: [TicketsController],
-  providers: [TicketsService, TicketNumberGenerator],
+  providers: [TicketsService, TicketNumberGenerator, TicketStateMachineService],
   exports: [TicketsService],
 })
 export class TicketsModule {}

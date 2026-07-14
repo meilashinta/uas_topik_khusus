@@ -4,6 +4,10 @@ import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketFilterDto } from './dto/ticket-filter.dto';
+import { RejectTicketDto } from './dto/reject-ticket.dto';
+import { CloseTicketDto } from './dto/close-ticket.dto';
+import { ReopenTicketDto } from './dto/reopen-ticket.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 
@@ -23,22 +27,25 @@ export class TicketsController {
 
   @Get()
   @ApiOperation({ summary: 'Get list of tickets' })
-  @ApiResponse({ status: 200, description: 'Return list of tickets with pagination and filtering' })
   async findAll(@Req() req: any, @Query() filterDto: TicketFilterDto) {
     return this.ticketsService.findAll(filterDto, req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ticket detail' })
-  @ApiResponse({ status: 200, description: 'Return ticket detail with full relations' })
   async findOne(@Req() req: any, @Param('id') id: string) {
     return this.ticketsService.findOne(id, req.user);
+  }
+
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Get ticket history logs' })
+  async getHistory(@Req() req: any, @Param('id') id: string) {
+    return this.ticketsService.getHistory(id, req.user);
   }
 
   @Roles(RoleName.EMPLOYEE)
   @Patch(':id')
   @ApiOperation({ summary: 'Update ticket title/description (EMPLOYEE only, OPEN status only)' })
-  @ApiResponse({ status: 200, description: 'Ticket updated successfully' })
   async update(@Req() req: any, @Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
     return this.ticketsService.update(id, updateTicketDto, req.user, req);
   }
@@ -46,8 +53,34 @@ export class TicketsController {
   @Roles(RoleName.EMPLOYEE)
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel ticket (EMPLOYEE only, OPEN status only)' })
-  @ApiResponse({ status: 200, description: 'Ticket cancelled successfully' })
   async cancel(@Req() req: any, @Param('id') id: string) {
     return this.ticketsService.cancel(id, req.user, req);
+  }
+
+  @Roles(RoleName.SUPERVISOR, RoleName.ADMINISTRATOR)
+  @Patch(':id/reject')
+  @ApiOperation({ summary: 'Reject ticket (SUPERVISOR/ADMIN only, OPEN status only)' })
+  async reject(@Req() req: any, @Param('id') id: string, @Body() rejectDto: RejectTicketDto) {
+    return this.ticketsService.reject(id, rejectDto, req.user, req);
+  }
+
+  @Roles(RoleName.EMPLOYEE)
+  @Patch(':id/close')
+  @ApiOperation({ summary: 'Close ticket with rating (EMPLOYEE only, RESOLVED status only)' })
+  async close(@Req() req: any, @Param('id') id: string, @Body() closeDto: CloseTicketDto) {
+    return this.ticketsService.close(id, closeDto, req.user, req);
+  }
+
+  @Roles(RoleName.EMPLOYEE)
+  @Patch(':id/reopen')
+  @ApiOperation({ summary: 'Reopen ticket (EMPLOYEE only, RESOLVED status only)' })
+  async reopen(@Req() req: any, @Param('id') id: string, @Body() reopenDto: ReopenTicketDto) {
+    return this.ticketsService.reopen(id, reopenDto, req.user, req);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Generic status update (Enforces State Machine)' })
+  async updateStatus(@Req() req: any, @Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
+    return this.ticketsService.updateStatus(id, updateStatusDto, req.user, req);
   }
 }

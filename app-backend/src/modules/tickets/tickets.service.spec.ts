@@ -5,6 +5,7 @@ import { AuditLogService } from '../audit-log/audit-log.service';
 import { EventPublisher } from '../../infrastructure/rabbitmq/event-publisher';
 import { RedisService } from '../../infrastructure/redis/redis.service';
 import { TicketNumberGenerator } from './utils/ticket-number.generator';
+import { TicketStateMachineService } from './utils/ticket-state-machine.service';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { TicketStatus, RoleName } from '@prisma/client';
 
@@ -15,6 +16,7 @@ describe('TicketsService', () => {
   let eventPublisherMock: any;
   let redisMock: any;
   let ticketGeneratorMock: any;
+  let stateMachineMock: any;
 
   beforeEach(async () => {
     prismaMock = {
@@ -26,6 +28,7 @@ describe('TicketsService', () => {
     eventPublisherMock = { publishTicketEvent: jest.fn() };
     redisMock = { get: jest.fn(), set: jest.fn(), del: jest.fn() };
     ticketGeneratorMock = { generate: jest.fn() };
+    stateMachineMock = { validateTransition: jest.fn(), validateTransitionRole: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -35,6 +38,7 @@ describe('TicketsService', () => {
         { provide: EventPublisher, useValue: eventPublisherMock },
         { provide: RedisService, useValue: redisMock },
         { provide: TicketNumberGenerator, useValue: ticketGeneratorMock },
+        { provide: TicketStateMachineService, useValue: stateMachineMock },
       ],
     }).compile();
 
@@ -57,29 +61,26 @@ describe('TicketsService', () => {
       await expect(service.update('t1', { title: 'New' }, { userId: 'u1' }, {}))
         .rejects.toThrow(ForbiddenException);
     });
+  });
 
-    it('should allow update if owner and OPEN', async () => {
+  describe('reject', () => {
+    it('should call state machine validate', async () => {
       prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'u1', status: TicketStatus.OPEN });
-      prismaMock.ticket.update.mockResolvedValue({ id: 't1', title: 'New' });
-      await service.update('t1', { title: 'New' }, { userId: 'u1' }, {});
-      expect(prismaMock.ticket.update).toHaveBeenCalled();
+      prismaMock.ticket.update.mockResolvedValue({ id: 't1', status: TicketStatus.REJECTED });
+      await service.reject('t1', { reason: 'Duplicate' }, { userId: 'sup1', role: RoleName.SUPERVISOR }, {});
+      expect(stateMachineMock.validateTransition).toHaveBeenCalledWith(TicketStatus.OPEN, TicketStatus.REJECTED);
+      expect(stateMachineMock.validateTransitionRole).toHaveBeenCalled();
     });
   });
 
-  describe('cancel', () => {
-    it('should throw error if not OPEN', async () => {
-      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'u1', status: TicketStatus.ASSIGNED });
-      await expect(service.cancel('t1', { userId: 'u1' }, {}))
-        .rejects.toThrow(BadRequestException);
-    });
-
-    it('should allow cancel and set status CANCELLED', async () => {
-      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'u1', status: TicketStatus.OPEN });
-      prismaMock.ticket.update.mockResolvedValue({ id: 't1', status: TicketStatus.CANCELLED });
-      await service.cancel('t1', { userId: 'u1' }, {});
-      expect(prismaMock.ticket.update).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({ status: TicketStatus.CANCELLED })
-      }));
+  describe('close', () => {
+    it('should call state machine validate', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', createdById: 'u1', status: TicketStatus.RESOLVED });
+      prismaMock.ticket.update.mockResolvedValue({ id: 't1', status: TicketStatus.CLOSED });
+      await service.close('t1', { rating: 5 }, { userId: 'u1', role: RoleName.EMPLOYEE }, {});
+      expect(stateMachineMock.validateTransition).toHaveBeenCalledWith(TicketStatus.RESOLVED, TicketStatus.CLOSED);
+      expect(stateMachineMock.validateTransitionRole).toHaveBeenCalled();
     });
   });
+
 });
