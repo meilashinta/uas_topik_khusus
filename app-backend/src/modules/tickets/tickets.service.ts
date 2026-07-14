@@ -281,7 +281,13 @@ export class TicketsService {
 
     const updatedTicket = await this.prisma.ticket.update({ where: { id }, data });
     await this.auditLogService.logAction('TICKET_STATUS_UPDATED', 'Ticket', updatedTicket.id, user.userId, { status: updateStatusDto.status }, req);
-    this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketStatusUpdated', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber } as any);
+    
+    if (updateStatusDto.status === TicketStatus.RESOLVED) {
+      this.eventPublisher.publishTicketEvent('ticket.resolved', { eventType: 'TicketResolved', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber } as any);
+    } else {
+      this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketStatusUpdated', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber } as any);
+    }
+    
     await this.redisService.del(`ticket:${id}`);
     return updatedTicket;
   }

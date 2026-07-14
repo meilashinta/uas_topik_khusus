@@ -93,8 +93,8 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Set cache (TTL 1 hour)
-    await this.redisService.set(`user:${id}`, JSON.stringify(user), 3600);
+    // Set cache (TTL 5 minutes)
+    await this.redisService.set(`user:${id}`, JSON.stringify(user), 300);
 
     return user;
   }
