@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { PrioritiesModule } from './modules/priorities/priorities.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 import { AssignmentsModule } from './modules/assignments/assignments.module';
@@ -22,7 +23,7 @@ import { RabbitMQModule } from './infrastructure/rabbitmq/rabbitmq.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
-  imports: [PrismaModule, CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule],
+  imports: [PrismaModule, CommonModule, RedisModule, RabbitMQModule, HealthModule, AuthModule, UsersModule, RolesModule, DepartmentsModule, CategoriesModule, PrioritiesModule, TicketsModule, AssignmentsModule, CommentsModule, AttachmentsModule, NotificationsModule, DashboardModule, ReportsModule, AuditLogModule],
   controllers: [AppController],
   providers: [AppService],
 })
