@@ -1,33 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StatisticsService } from './statistics.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { RedisService } from '../../infrastructure/redis/redis.service';
 import { CacheService } from '../../infrastructure/redis/cache.service';
+import { DashboardFilterDto, DashboardPeriod } from './dto/dashboard-filter.dto';
 import { TicketStatus } from '@prisma/client';
 
 describe('StatisticsService', () => {
   let service: StatisticsService;
   let prismaService: any;
-  let redisService: any;
   let cacheService: any;
 
   beforeEach(async () => {
     prismaService = {
       ticket: {
-        groupBy: jest.fn(),
-        count: jest.fn(),
-        findMany: jest.fn(),
+        count: jest.fn().mockResolvedValue(10),
+        groupBy: jest.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       ticketHistory: {
-        findMany: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      user: {
+        findMany: jest.fn().mockResolvedValue([]),
       }
     };
     
-    redisService = {
-      get: jest.fn(),
-      set: jest.fn(),
-    };
-
     cacheService = {
       getOrSet: jest.fn(async (key, ttl, cb) => cb()),
     };
@@ -36,7 +33,6 @@ describe('StatisticsService', () => {
       providers: [
         StatisticsService,
         { provide: PrismaService, useValue: prismaService },
-        { provide: RedisService, useValue: redisService },
         { provide: CacheService, useValue: cacheService },
       ],
     }).compile();
@@ -48,53 +44,47 @@ describe('StatisticsService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getTicketCountByStatus', () => {
-    it('should aggregate counts by status', async () => {
+  describe('getDashboardSummary', () => {
+    it('should aggregate counts correctly', async () => {
       prismaService.ticket.groupBy.mockResolvedValue([
         { status: TicketStatus.OPEN, _count: { id: 5 } },
         { status: TicketStatus.RESOLVED, _count: { id: 3 } },
       ]);
 
-      const result = await service.getTicketCountByStatus();
+      const result = await service.getDashboardSummary(new DashboardFilterDto());
       
-      expect(result[TicketStatus.OPEN]).toBe(5);
-      expect(result[TicketStatus.RESOLVED]).toBe(3);
-      expect(result[TicketStatus.CLOSED]).toBe(0);
-      expect(prismaService.ticket.groupBy).toHaveBeenCalled();
+      expect(result.totalTickets).toBe(10);
+      expect(result.ticketsByStatus[TicketStatus.OPEN]).toBe(5);
+      expect(result.ticketsByStatus[TicketStatus.RESOLVED]).toBe(3);
     });
   });
 
-  describe('getSlaComplianceRate', () => {
+  describe('getSlaCompliance', () => {
     it('should calculate SLA compliance correctly', async () => {
-      // Total 10 tickets
-      prismaService.ticket.count.mockResolvedValueOnce(10);
-      // 2 overdue
-      prismaService.ticket.count.mockResolvedValueOnce(2);
-
-      const rate = await service.getSlaComplianceRate();
-      expect(rate).toBe(80); // (10-2)/10 * 100
-    });
-
-    it('should return 100 if no tickets', async () => {
-      prismaService.ticket.count.mockResolvedValueOnce(0);
-      const rate = await service.getSlaComplianceRate();
-      expect(rate).toBe(100);
-    });
-  });
-
-  describe('getAverageResolutionTime', () => {
-    it('should compute average resolution time in minutes', async () => {
-      const now = new Date();
-      const resolvedAt1 = new Date(now.getTime() + 60000); // 1 minute
-      const resolvedAt2 = new Date(now.getTime() + 180000); // 3 minutes
-
+      // Return 2 tickets, one overdue, one not
       prismaService.ticket.findMany.mockResolvedValue([
-        { createdAt: now, resolvedAt: resolvedAt1 },
-        { createdAt: now, resolvedAt: resolvedAt2 },
+        { id: '1', priority: { name: 'HIGH' }, isOverdue: false, status: TicketStatus.CLOSED },
+        { id: '2', priority: { name: 'HIGH' }, isOverdue: true, status: TicketStatus.CLOSED },
       ]);
 
-      const avg = await service.getAverageResolutionTime();
-      expect(avg).toBe(2); // (1+3)/2 = 2 minutes
+      const result = await service.getSlaCompliance(new DashboardFilterDto());
+      expect(result.overallComplianceRate).toBe(50);
+      expect(result.complianceByPriority['HIGH'].rate).toBe(50);
+      expect(result.overdueTickets.length).toBe(1);
+    });
+  });
+
+  describe('getTechnicianPerformance', () => {
+    it('should calculate technician metrics correctly', async () => {
+      prismaService.user.findMany.mockResolvedValue([{ id: 'tech-1', name: 'Tech 1' }]);
+      prismaService.ticket.findMany.mockResolvedValue([
+        { id: '1', status: TicketStatus.RESOLVED, isOverdue: false, createdAt: new Date(Date.now() - 60000), resolvedAt: new Date(), rating: { score: 5 } },
+      ]);
+
+      const result = await service.getTechnicianPerformance(new DashboardFilterDto());
+      expect(result.technicians.length).toBe(1);
+      expect(result.technicians[0].totalTicketsHandled).toBe(1);
+      expect(result.technicians[0].averageRating).toBe(5);
     });
   });
 });
