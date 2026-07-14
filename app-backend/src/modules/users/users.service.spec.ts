@@ -34,6 +34,9 @@ describe('UsersService', () => {
       department: {
         findUnique: jest.fn(),
       },
+      ticketHistory: {
+        groupBy: jest.fn(),
+      },
     };
     redisMock = {
       get: jest.fn(),
@@ -135,4 +138,26 @@ describe('UsersService', () => {
       );
     });
   });
+
+  describe('getTechnicianWorkload', () => {
+    it('should return mapped technicians workload', async () => {
+      prismaMock.user.findMany.mockResolvedValue([
+        { id: 'tech1', name: 'Tech 1', email: 'tech1@example.com', _count: { assignments: 2 } }
+      ]);
+      prismaMock.ticketHistory.groupBy = jest.fn().mockResolvedValue([
+        { changedById: 'tech1', _count: { id: 1 } }
+      ]);
+
+      const result = await service.getTechnicianWorkload();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 'tech1',
+        name: 'Tech 1',
+        email: 'tech1@example.com',
+        activeTickets: 2,
+        resolvedToday: 1
+      });
+    });
+  });
+
 });

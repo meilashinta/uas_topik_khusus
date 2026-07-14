@@ -8,6 +8,8 @@ import { RejectTicketDto } from './dto/reject-ticket.dto';
 import { CloseTicketDto } from './dto/close-ticket.dto';
 import { ReopenTicketDto } from './dto/reopen-ticket.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { AssignTechnicianDto } from './dto/assign-technician.dto';
+import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleName } from '@prisma/client';
 
@@ -82,5 +84,19 @@ export class TicketsController {
   @ApiOperation({ summary: 'Generic status update (Enforces State Machine)' })
   async updateStatus(@Req() req: any, @Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     return this.ticketsService.updateStatus(id, updateStatusDto, req.user, req);
+  }
+
+  @Roles(RoleName.SUPERVISOR, RoleName.ADMINISTRATOR)
+  @Post(':id/assign')
+  @ApiOperation({ summary: 'Assign a technician to a ticket' })
+  async assign(@Req() req: any, @Param('id') id: string, @Body() assignDto: AssignTechnicianDto) {
+    return this.ticketsService.assign(id, assignDto, req.user, req);
+  }
+
+  @Roles(RoleName.SUPERVISOR, RoleName.ADMINISTRATOR)
+  @Post(':id/reassign')
+  @ApiOperation({ summary: 'Reassign a technician to a ticket' })
+  async reassign(@Req() req: any, @Param('id') id: string, @Body() reassignDto: ReassignTechnicianDto) {
+    return this.ticketsService.reassign(id, reassignDto, req.user, req);
   }
 }

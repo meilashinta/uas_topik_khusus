@@ -12,6 +12,8 @@ import { RejectTicketDto } from './dto/reject-ticket.dto';
 import { CloseTicketDto } from './dto/close-ticket.dto';
 import { ReopenTicketDto } from './dto/reopen-ticket.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { AssignTechnicianDto } from './dto/assign-technician.dto';
+import { ReassignTechnicianDto } from './dto/reassign-technician.dto';
 import { Prisma, TicketStatus, RoleName } from '@prisma/client';
 
 @Injectable()
@@ -289,6 +291,103 @@ export class TicketsService {
     });
 
     return history;
+  }
+
+  async assign(id: string, assignDto: AssignTechnicianDto, user: any, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { priority: true } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    this.stateMachine.validateTransition(ticket.status, TicketStatus.ASSIGNED);
+    this.stateMachine.validateTransitionRole(ticket.status, TicketStatus.ASSIGNED, user, ticket);
+
+    const technician = await this.prisma.user.findFirst({
+      where: { id: assignDto.technicianId, isActive: true, role: { name: RoleName.TECHNICIAN } }
+    });
+    if (!technician) throw new BadRequestException('Invalid or inactive technician');
+
+    const slaDueAt = new Date(Date.now() + ticket.priority.slaResolutionMinutes * 60000);
+
+    const assignedTicket = await this.prisma.ticket.update({
+      where: { id },
+      data: {
+        status: TicketStatus.ASSIGNED,
+        slaDueAt,
+        assignments: {
+          create: {
+            technicianId: assignDto.technicianId,
+            assignedById: user.userId,
+            isActive: true,
+          }
+        },
+        histories: {
+          create: {
+            fromStatus: ticket.status,
+            toStatus: TicketStatus.ASSIGNED,
+            changedById: user.userId,
+            note: 'Ticket assigned to technician'
+          }
+        }
+      }
+    });
+
+    await this.auditLogService.logAction('TICKET_ASSIGNED', 'Ticket', assignedTicket.id, user.userId, { technicianId: assignDto.technicianId }, req);
+    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketAssigned', ticketId: assignedTicket.id, ticketNumber: assignedTicket.ticketNumber, assignedTo: assignDto.technicianId, assignedBy: user.userId, priority: ticket.priority.name, slaDueAt: slaDueAt.toISOString() } as any);
+    await this.redisService.del(`ticket:${id}`);
+    return assignedTicket;
+  }
+
+  async reassign(id: string, reassignDto: ReassignTechnicianDto, user: any, req: any) {
+    const ticket = await this.prisma.ticket.findUnique({ where: { id }, include: { assignments: { where: { isActive: true } } } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+
+    // Custom check: must be ASSIGNED or IN_PROGRESS (meaning it's active and not resolved)
+    if (ticket.status !== TicketStatus.ASSIGNED && ticket.status !== TicketStatus.IN_PROGRESS) {
+      throw new BadRequestException('Ticket must be ASSIGNED or IN_PROGRESS to be reassigned');
+    }
+
+    const currentAssignment = ticket.assignments[0];
+    if (currentAssignment && currentAssignment.technicianId === reassignDto.technicianId) {
+      throw new BadRequestException('Technician is already assigned to this ticket');
+    }
+
+    const newTechnician = await this.prisma.user.findFirst({
+      where: { id: reassignDto.technicianId, isActive: true, role: { name: RoleName.TECHNICIAN } }
+    });
+    if (!newTechnician) throw new BadRequestException('Invalid or inactive technician');
+
+    // Deactivate old assignment, create new
+    await this.prisma.assignment.updateMany({
+      where: { ticketId: id, isActive: true },
+      data: { isActive: false }
+    });
+
+    const reassignedTicket = await this.prisma.ticket.update({
+      where: { id },
+      data: {
+        status: TicketStatus.ASSIGNED, // Reverts back to assigned even if it was in progress
+        assignments: {
+          create: {
+            technicianId: reassignDto.technicianId,
+            assignedById: user.userId,
+            reason: reassignDto.reason,
+            isActive: true,
+          }
+        },
+        histories: {
+          create: {
+            fromStatus: ticket.status,
+            toStatus: TicketStatus.ASSIGNED,
+            changedById: user.userId,
+            note: `Reassigned: ${reassignDto.reason}`
+          }
+        }
+      }
+    });
+
+    await this.auditLogService.logAction('TICKET_REASSIGNED', 'Ticket', reassignedTicket.id, user.userId, { technicianId: reassignDto.technicianId, reason: reassignDto.reason }, req);
+    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketReassigned', ticketId: reassignedTicket.id, ticketNumber: reassignedTicket.ticketNumber, assignedTo: reassignDto.technicianId, assignedBy: user.userId } as any);
+    await this.redisService.del(`ticket:${id}`);
+    return reassignedTicket;
   }
 
   private verifyOwnership(ticket: any, user: any) {

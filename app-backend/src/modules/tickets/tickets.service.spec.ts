@@ -23,6 +23,8 @@ describe('TicketsService', () => {
       ticketCategory: { findUnique: jest.fn() },
       ticketPriority: { findUnique: jest.fn() },
       ticket: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
+      user: { findFirst: jest.fn() },
+      assignment: { updateMany: jest.fn() },
     };
     auditLogMock = { logAction: jest.fn() };
     eventPublisherMock = { publishTicketEvent: jest.fn() };
@@ -80,6 +82,39 @@ describe('TicketsService', () => {
       await service.close('t1', { rating: 5 }, { userId: 'u1', role: RoleName.EMPLOYEE }, {});
       expect(stateMachineMock.validateTransition).toHaveBeenCalledWith(TicketStatus.RESOLVED, TicketStatus.CLOSED);
       expect(stateMachineMock.validateTransitionRole).toHaveBeenCalled();
+    });
+  });
+
+  describe('assign', () => {
+    it('should assign a technician', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', status: TicketStatus.OPEN, priority: { slaResolutionMinutes: 60 } });
+      prismaMock.user.findFirst.mockResolvedValue({ id: 'tech1' });
+      prismaMock.ticket.update.mockResolvedValue({ id: 't1', ticketNumber: 'TKT-1' });
+
+      await service.assign('t1', { technicianId: 'tech1' }, { userId: 'sup1' }, {});
+
+      expect(prismaMock.ticket.update).toHaveBeenCalled();
+      expect(stateMachineMock.validateTransition).toHaveBeenCalledWith(TicketStatus.OPEN, TicketStatus.ASSIGNED);
+    });
+  });
+
+  describe('reassign', () => {
+    it('should throw if ticket is not ASSIGNED or IN_PROGRESS', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', status: TicketStatus.OPEN, assignments: [] });
+      await expect(service.reassign('t1', { technicianId: 'tech1', reason: 'r' }, { userId: 'sup1' }, {}))
+        .rejects.toThrow(BadRequestException);
+    });
+
+    it('should reassign a technician', async () => {
+      prismaMock.ticket.findUnique.mockResolvedValue({ id: 't1', status: TicketStatus.ASSIGNED, assignments: [{ technicianId: 'tech1' }] });
+      prismaMock.user.findFirst.mockResolvedValue({ id: 'tech2' });
+      prismaMock.assignment.updateMany = jest.fn().mockResolvedValue({});
+      prismaMock.ticket.update.mockResolvedValue({ id: 't1', ticketNumber: 'TKT-1' });
+
+      await service.reassign('t1', { technicianId: 'tech2', reason: 'r' }, { userId: 'sup1' }, {});
+
+      expect(prismaMock.assignment.updateMany).toHaveBeenCalled();
+      expect(prismaMock.ticket.update).toHaveBeenCalled();
     });
   });
 

@@ -240,6 +240,60 @@ export class UsersService {
     return { message: 'Reset password link sent to user email' };
   }
 
+  async getTechnicianWorkload() {
+    // Return list of all technicians with their active tickets count and today's resolved tickets
+    const technicians = await this.prisma.user.findMany({
+      where: { role: { name: 'TECHNICIAN' }, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        _count: {
+          select: {
+            assignments: {
+              where: {
+                isActive: true,
+                ticket: {
+                  status: { in: ['ASSIGNED', 'IN_PROGRESS'] }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const todayResolved = await this.prisma.ticketHistory.groupBy({
+      by: ['changedById'],
+      where: {
+        toStatus: 'RESOLVED',
+        createdAt: { gte: startOfDay },
+        changedBy: { role: { name: 'TECHNICIAN' } }
+      },
+      _count: { id: true }
+    });
+
+    const mappedTechnicians = technicians.map((tech) => {
+      const resolved = todayResolved.find(t => t.changedById === tech.id);
+      return {
+        id: tech.id,
+        name: tech.name,
+        email: tech.email,
+        activeTickets: tech._count.assignments,
+        resolvedToday: resolved ? resolved._count.id : 0
+      };
+    });
+
+    return mappedTechnicians;
+  }
+
+  async getAuditLogs(userId: string) {
+    return this.findOne(userId);
+  }
+
   async getProfile(userId: string) {
     return this.findOne(userId);
   }
