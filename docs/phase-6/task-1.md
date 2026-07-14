@@ -17,9 +17,9 @@ Implementasi endpoint Dashboard yang menampilkan ringkasan statistik tiket, SLA 
 
 ### 1.1 Dashboard Summary — `GET /api/v1/dashboard/summary`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')` (TECHNICIAN bisa lihat dashboard pribadi)
-- [ ] Buat `GetDashboardSummaryQuery` handler
-- [ ] Response data (FR-DASH-01):
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')` (TECHNICIAN bisa lihat dashboard pribadi)
+- [x] Buat `GetDashboardSummaryQuery` handler
+- [x] Response data (FR-DASH-01):
   ```typescript
   {
     totalTickets: number,
@@ -39,18 +39,18 @@ Implementasi endpoint Dashboard yang menampilkan ringkasan statistik tiket, SLA 
     averageFirstResponseTimeMinutes: number,
   }
   ```
-- [ ] Filter opsional:
+- [x] Filter opsional:
   - `period` — `today` | `week` | `month` | `custom`
   - `dateFrom` / `dateTo` — untuk custom range
   - `departmentId` — filter per department
-- [ ] Cache di Redis: key `dashboard:summary:{role}:{userId}`, TTL 60 detik (FR-DASH-05)
-- [ ] Untuk **TECHNICIAN**: tampilkan hanya statistik tiket miliknya (yang di-assign)
+- [x] Cache di Redis: key `dashboard:summary:{role}:{userId}`, TTL 60 detik (FR-DASH-05)
+- [x] Untuk **TECHNICIAN**: tampilkan hanya statistik tiket miliknya (yang di-assign)
 
 ### 1.2 SLA Compliance — `GET /api/v1/dashboard/sla-compliance`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Buat `GetSlaComplianceQuery` handler
-- [ ] Response data (FR-DASH-02):
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Buat `GetSlaComplianceQuery` handler
+- [x] Response data (FR-DASH-02):
   ```typescript
   {
     overallComplianceRate: number, // persentase
@@ -64,18 +64,18 @@ Implementasi endpoint Dashboard yang menampilkan ringkasan statistik tiket, SLA 
     atRiskTickets: TicketSummary[],  // tiket yang mendekati SLA (≤ 20%)
   }
   ```
-- [ ] Filter: `dateFrom`, `dateTo`, `departmentId`
-- [ ] Cache: TTL 60 detik
-- [ ] Perhitungan SLA Compliance Rate:
+- [x] Filter: `dateFrom`, `dateTo`, `departmentId`
+- [x] Cache: TTL 60 detik
+- [x] Perhitungan SLA Compliance Rate:
   ```
   rate = (tiket CLOSED/RESOLVED dimana resolvedAt - createdAt ≤ slaResolutionMinutes) / total tiket * 100
   ```
 
 ### 1.3 Technician Performance — `GET /api/v1/dashboard/technician-performance`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Buat `GetTechnicianPerformanceQuery` handler
-- [ ] Response data (FR-DASH-03):
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Buat `GetTechnicianPerformanceQuery` handler
+- [x] Response data (FR-DASH-03):
   ```typescript
   {
     technicians: [
@@ -93,13 +93,13 @@ Implementasi endpoint Dashboard yang menampilkan ringkasan statistik tiket, SLA 
     ]
   }
   ```
-- [ ] Filter: `dateFrom`, `dateTo`, `departmentId`
-- [ ] Cache: TTL 60 detik
+- [x] Filter: `dateFrom`, `dateTo`, `departmentId`
+- [x] Cache: TTL 60 detik
 
 ### 1.4 Ticket Trend — `GET /api/v1/dashboard/ticket-trend`
 
-- [ ] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
-- [ ] Response data (FR-DASH-04):
+- [x] Role: `@Roles('SUPERVISOR', 'ADMINISTRATOR')`
+- [x] Response data (FR-DASH-04):
   ```typescript
   {
     period: 'day' | 'week' | 'month',
@@ -108,29 +108,29 @@ Implementasi endpoint Dashboard yang menampilkan ringkasan statistik tiket, SLA 
     ]
   }
   ```
-- [ ] Grafik tren tiket per hari/minggu/bulan
-- [ ] Default: 30 hari terakhir
-- [ ] Cache: TTL 60 detik
+- [x] Grafik tren tiket per hari/minggu/bulan
+- [x] Default: 30 hari terakhir
+- [x] Cache: TTL 60 detik
 
 ### 1.5 Dashboard Role-Based View
 
-- [ ] **Administrator**: melihat data seluruh organisasi
-- [ ] **Supervisor**: melihat data departemen-nya dan tiket yang dia supervisi
-- [ ] **Technician**: hanya melihat dashboard pribadi:
+- [x] **Administrator**: melihat data seluruh organisasi
+- [x] **Supervisor**: melihat data departemen-nya dan tiket yang dia supervisi
+- [x] **Technician**: hanya melihat dashboard pribadi:
   - Tiket yang di-assign (aktif)
   - Statistik personal (rata-rata waktu, rating)
   - Tiket overdue miliknya
-- [ ] **Employee**: TIDAK ada akses dashboard (403)
+- [x] **Employee**: TIDAK ada akses dashboard (403)
 
 ---
 
 ## Definition of Done
 
-- [ ] Endpoint summary menampilkan data statistik lengkap per periode
-- [ ] SLA compliance rate terhitung akurat per priority
-- [ ] Technician performance menampilkan metrik lengkap
-- [ ] Ticket trend menampilkan data grafik per hari/minggu/bulan
-- [ ] Cache 60 detik aktif di semua endpoint dashboard
-- [ ] Role-based view bekerja (Admin vs Supervisor vs Technician)
-- [ ] Swagger docs lengkap
-- [ ] Unit test: StatisticsService calculations, SLA compliance formula
+- [x] Endpoint summary menampilkan data statistik lengkap per periode
+- [x] SLA compliance rate terhitung akurat per priority
+- [x] Technician performance menampilkan metrik lengkap
+- [x] Ticket trend menampilkan data grafik per hari/minggu/bulan
+- [x] Cache 60 detik aktif di semua endpoint dashboard
+- [x] Role-based view bekerja (Admin vs Supervisor vs Technician)
+- [x] Swagger docs lengkap
+- [x] Unit test: StatisticsService calculations, SLA compliance formula

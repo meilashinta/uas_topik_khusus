@@ -17,7 +17,7 @@ Implementasi job scheduler yang memonitor SLA tiket, mengirim warning saat mende
 
 ### 2.1 SLA Calculator Service
 
-- [ ] Buat `SlaService` dengan method:
+- [x] Buat `SlaService` dengan method:
   - `calculateSlaDueAt(priorityId: string, startTime: Date): Date`
     - Ambil `slaResolutionMinutes` dari priority
     - Return `startTime + slaResolutionMinutes`
@@ -31,12 +31,12 @@ Implementasi job scheduler yang memonitor SLA tiket, mengirim warning saat mende
 
 ### 2.2 SLA Checker Cron Job
 
-- [ ] Buat scheduled job yang berjalan **setiap 5 menit** (PRD Bagian 11.1):
+- [x] Buat scheduled job yang berjalan **setiap 5 menit** (PRD Bagian 11.1):
   ```typescript
   @Cron('*/5 * * * *')
   async checkSlaCompliance() { ... }
   ```
-- [ ] Logic:
+- [x] Logic:
   1. Query semua tiket dengan status `ASSIGNED` atau `IN_PROGRESS` yang memiliki `slaDueAt`
   2. Untuk setiap tiket:
      - **SLA Warning** (sisa ≤ 20%):
@@ -51,12 +51,12 @@ Implementasi job scheduler yang memonitor SLA tiket, mengirim warning saat mende
 
 ### 2.3 Auto-Close Cron Job
 
-- [ ] Buat scheduled job yang berjalan **setiap 1 jam** (atau sesuai kebutuhan):
+- [x] Buat scheduled job yang berjalan **setiap 1 jam** (atau sesuai kebutuhan):
   ```typescript
   @Cron('0 * * * *')
   async autoCloseResolvedTickets() { ... }
   ```
-- [ ] Logic (FR-CLOSE-04):
+- [x] Logic (FR-CLOSE-04):
   1. Query tiket dengan status `RESOLVED` yang `resolvedAt` > 3 hari (72 jam) tanpa respons Employee
   2. Untuk setiap tiket:
      - Update status → `CLOSED`
@@ -67,14 +67,14 @@ Implementasi job scheduler yang memonitor SLA tiket, mengirim warning saat mende
 
 ### 2.4 Field `isOverdue` pada Ticket
 
-- [ ] Tambahkan field `isOverdue` (Boolean, default false) ke model `Ticket` di Prisma schema
-- [ ] Jalankan migrasi: `npx prisma migrate dev --name add_is_overdue`
-- [ ] Update index untuk mendukung query overdue tickets
-- [ ] Update `GetTicketListQuery` agar bisa filter `isOverdue = true`
+- [x] Tambahkan field `isOverdue` (Boolean, default false) ke model `Ticket` di Prisma schema
+- [x] Jalankan migrasi: `npx prisma migrate dev --name add_is_overdue`
+- [x] Update index untuk mendukung query overdue tickets
+- [x] Update `GetTicketListQuery` agar bisa filter `isOverdue = true`
 
 ### 2.5 SLA Event Payloads
 
-- [ ] Definisikan payload event SLA:
+- [x] Definisikan payload event SLA:
   ```typescript
   // sla.warning
   {
@@ -104,23 +104,23 @@ Implementasi job scheduler yang memonitor SLA tiket, mengirim warning saat mende
 
 ### 2.6 SLA Dashboard Data (Cache)
 
-- [ ] Setiap kali SLA checker berjalan, update cache Redis:
+- [x] Setiap kali SLA checker berjalan, update cache Redis:
   - Key: `sla:overdue:list` — daftar tiket overdue (untuk dashboard supervisor)
   - Key: `sla:compliance:rate` — persentase SLA compliance (tiket selesai dalam SLA / total tiket)
   - TTL: 5 menit
-- [ ] Data ini akan dikonsumsi oleh Dashboard module (Phase 6)
+- [x] Data ini akan dikonsumsi oleh Dashboard module (Phase 6)
 
 ---
 
 ## Definition of Done
 
-- [ ] SLA checker cron job berjalan setiap 5 menit
-- [ ] Warning dikirim saat sisa SLA ≤ 20% (hanya sekali per tiket)
-- [ ] Tiket ditandai `isOverdue = true` saat SLA terlampaui
-- [ ] Event `sla.warning` dan `sla.breach` ter-publish ke RabbitMQ
-- [ ] Auto-close berjalan untuk tiket RESOLVED tanpa respons > 72 jam
-- [ ] Cache SLA overdue list & compliance rate terupdate
-- [ ] Migrasi `isOverdue` berhasil
-- [ ] Unit test: SlaService (calculate, isOverdue, isWarning)
-- [ ] Unit test: SLA checker logic (warning threshold, breach detection)
-- [ ] Unit test: Auto-close logic (72 jam threshold)
+- [x] SLA checker cron job berjalan setiap 5 menit
+- [x] Warning dikirim saat sisa SLA ≤ 20% (hanya sekali per tiket)
+- [x] Tiket ditandai `isOverdue = true` saat SLA terlampaui
+- [x] Event `sla.warning` dan `sla.breach` ter-publish ke RabbitMQ
+- [x] Auto-close berjalan untuk tiket RESOLVED tanpa respons > 72 jam
+- [x] Cache SLA overdue list & compliance rate terupdate
+- [x] Migrasi `isOverdue` berhasil
+- [x] Unit test: SlaService (calculate, isOverdue, isWarning)
+- [x] Unit test: SLA checker logic (warning threshold, breach detection)
+- [x] Unit test: Auto-close logic (72 jam threshold)
