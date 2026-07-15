@@ -12,6 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "seed:demo": "ts-node prisma/seed-demo.ts",
     "start:worker:analytics": "ts-node src/workers/analytics.worker.ts",
     "start:worker:notification": "ts-node src/workers/notification.worker.ts",
     "start:worker:activity": "ts-node src/workers/activity.worker.ts",
