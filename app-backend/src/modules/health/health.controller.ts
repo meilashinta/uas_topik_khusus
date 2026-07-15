@@ -3,8 +3,10 @@ import { HealthCheckService, HealthCheck, HttpHealthIndicator } from '@nestjs/te
 import { RedisService } from '../../infrastructure/redis/redis.service';
 import { RabbitMQService } from '../../infrastructure/rabbitmq/rabbitmq.service';
 import { PrismaClient } from '@prisma/client';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('health')
+@Public()
 export class HealthController {
   private prisma: PrismaClient;
 
