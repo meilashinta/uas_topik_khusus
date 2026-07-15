@@ -33,6 +33,15 @@ export class TicketsService {
     @Inject(IFileStorageServiceToken) private readonly storageService: IFileStorageService,
   ) {}
 
+  /**
+   * Creates a new ticket in the system.
+   *
+   * @param {CreateTicketDto} createDto - Data transfer object containing ticket details (title, description, category, priority).
+   * @param {any} user - The authenticated user object extracted from the JWT token.
+   * @param {any} req - The Express request object, used for audit logging (IP, User Agent).
+   * @returns {Promise<Ticket>} The newly created ticket record.
+   * @throws {BadRequestException} If the provided category or priority is invalid/inactive.
+   */
   async create(createDto: CreateTicketDto, user: any, req: any) {
     const category = await this.prisma.ticketCategory.findUnique({ where: { id: createDto.categoryId } });
     if (!category || !category.isActive) {
