@@ -1,0 +1,192 @@
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: var(--color-surface);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+
+.sidebarHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebarHeader h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sidebarNav {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+}
+
+.navItemActive {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), transparent);
+  color: var(--color-primary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.navIcon {
+  font-size: 1.25rem;
+}
+
+.sidebarFooter {
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-danger);
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+.logoutBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Topbar */
+.topbar {
+  height: 70px;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.topbarLeft h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.iconBtn {
+  position: relative;
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.iconBtn:hover {
+  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--color-danger);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: bold;
+  height: 16px;
+  min-width: 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+/* Page Layout Wrapper */
+.mainLayout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 260px; /* matches sidebar width */
+  display: flex;
+  flex-direction: column;
+}
+
+.pageContainer {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+}

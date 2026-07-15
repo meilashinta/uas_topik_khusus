@@ -1,0 +1,134 @@
+.ticketsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.createBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableCard {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.searchBox {
+  position: relative;
+  width: 300px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.filterBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ticketId {
+  font-family: monospace;
+  color: var(--color-text-muted);
+}
+
+.ticketTitle {
+  font-weight: 500;
+  color: var(--color-text-main);
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem !important;
+  color: var(--color-text-muted);
+}

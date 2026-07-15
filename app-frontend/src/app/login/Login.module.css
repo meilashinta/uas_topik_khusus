@@ -1,0 +1,117 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Animated Blobs for aesthetic appeal */
+.blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0) 70%);
+  border-radius: 50%;
+  top: -100px;
+  left: -200px;
+  animation: float 10s ease-in-out infinite;
+  z-index: 0;
+}
+
+.blob2 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(14,165,233,0.1) 0%, rgba(14,165,233,0) 70%);
+  border-radius: 50%;
+  bottom: -150px;
+  right: -100px;
+  animation: float 12s ease-in-out infinite reverse;
+  z-index: 0;
+}
+
+@keyframes float {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.loginBox {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem 2rem;
+  z-index: 10;
+  position: relative;
+}
+
+.loginHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.loginHeader h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.03em;
+}
+
+.loginHeader p {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.alertError {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.forgotPassword {
+  text-align: right;
+  font-size: 0.8rem;
+}
+
+.forgotPassword a {
+  color: var(--color-primary);
+  transition: color var(--transition-fast);
+}
+
+.forgotPassword a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.demoHints {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.demoHints code {
+  background: rgba(0,0,0,0.2);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-secondary);
+}
