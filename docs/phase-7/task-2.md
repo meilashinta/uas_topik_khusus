@@ -17,7 +17,7 @@ Melengkapi seluruh dokumentasi teknis project: README, API docs, architecture do
 
 ### 2.1 README.md Lengkap
 
-- [ ] Update `README.md` di root project:
+- [x] Update `README.md` di root project:
   - Nama project & deskripsi singkat
   - Tech stack (NestJS, Next.js, PostgreSQL, Redis, RabbitMQ)
   - Fitur utama (bullet points)
@@ -50,18 +50,18 @@ Melengkapi seluruh dokumentasi teknis project: README, API docs, architecture do
 
 ### 2.2 OpenAPI Specification Final
 
-- [ ] Pastikan semua endpoint terdokumentasi di Swagger:
+- [x] Pastikan semua endpoint terdokumentasi di Swagger:
   - Request body schema (DTO) lengkap
   - Response schema lengkap
   - Error response (400, 401, 403, 404, 409, 422, 429)
   - Example values di setiap field
   - Auth requirement (Bearer token)
-- [ ] Export `openapi.json` final
-- [ ] Verifikasi: buka Swagger UI → semua endpoint bisa di-test
+- [x] Export `openapi.json` final
+- [x] Verifikasi: buka Swagger UI → semua endpoint bisa di-test
 
 ### 2.3 Database Documentation
 
-- [ ] Buat `docs/database.md`:
+- [x] Buat `docs/database.md`:
   - ERD diagram (bisa pakai Mermaid atau export dari Prisma)
   - Penjelasan setiap entitas dan relasinya
   - Index strategy: kenapa index tertentu dibuat
@@ -70,7 +70,7 @@ Melengkapi seluruh dokumentasi teknis project: README, API docs, architecture do
 
 ### 2.4 Deployment Guide
 
-- [ ] Update `docs/deployment.md`:
+- [x] Update `docs/deployment.md`:
   - **Development**: cara menjalankan lokal (sudah ada di SETUP.md, link saja)
   - **Production via PM2**:
     - Install PM2
@@ -84,13 +84,13 @@ Melengkapi seluruh dokumentasi teknis project: README, API docs, architecture do
 
 ### 2.5 CI/CD Documentation
 
-- [ ] Buat file `.github/workflows/ci.yml` sesuai PRD Bagian 18.5
-- [ ] Dokumentasikan pipeline: lint → test → build → deploy
-- [ ] Tambahkan badge CI status di README
+- [x] Buat file `.github/workflows/ci.yml` sesuai PRD Bagian 18.5
+- [x] Dokumentasikan pipeline: lint → test → build → deploy
+- [x] Tambahkan badge CI status di README
 
 ### 2.6 Changelog
 
-- [ ] Buat `CHANGELOG.md`:
+- [x] Buat `CHANGELOG.md`:
   - v1.0.0 — fitur yang di-deliver
   - Daftar semua modul yang selesai
   - Known issues / limitations
@@ -98,22 +98,22 @@ Melengkapi seluruh dokumentasi teknis project: README, API docs, architecture do
 
 ### 2.7 Komentar & Docstring di Kode
 
-- [ ] Pastikan setiap service/handler memiliki JSDoc comment yang menjelaskan:
+- [x] Pastikan setiap service/handler memiliki JSDoc comment yang menjelaskan:
   - Apa yang dilakukan function
   - Parameter yang diterima
   - Return value
   - Exception yang bisa terjadi
-- [ ] Pastikan komentar yang sudah ada TIDAK dihapus
-- [ ] Pastikan tidak ada `TODO` atau `FIXME` yang masih tersisa tanpa penjelasan
+- [x] Pastikan komentar yang sudah ada TIDAK dihapus
+- [x] Pastikan tidak ada `TODO` atau `FIXME` yang masih tersisa tanpa penjelasan
 
 ---
 
 ## Definition of Done
 
-- [ ] README.md lengkap dan cukup untuk developer baru memulai
-- [ ] Swagger UI menampilkan SEMUA endpoint dengan dokumentasi lengkap
-- [ ] `docs/database.md` lengkap dengan ERD
-- [ ] `docs/deployment.md` lengkap
-- [ ] CI/CD pipeline terkonfigurasi
-- [ ] CHANGELOG.md tersedia
-- [ ] Komentar kode lengkap di service/handler utama
+- [x] README.md lengkap dan cukup untuk developer baru memulai
+- [x] Swagger UI menampilkan SEMUA endpoint dengan dokumentasi lengkap
+- [x] `docs/database.md` lengkap dengan ERD
+- [x] `docs/deployment.md` lengkap
+- [x] CI/CD pipeline terkonfigurasi
+- [x] CHANGELOG.md tersedia
+- [x] Komentar kode lengkap di service/handler utama

@@ -17,7 +17,7 @@ Persiapan data demo dan skenario presentasi untuk menunjukkan fitur HelpDeskPro 
 
 ### 4.1 Seed Data Demo
 
-- [ ] Buat script `prisma/seed-demo.ts` untuk mengisi data demo yang realistis:
+- [x] Buat script `prisma/seed-demo.ts` untuk mengisi data demo yang realistis:
   - **Users** (minimal 1 per role):
     - Admin: `admin@helpdeskpro.id` / `Admin@123`
     - Supervisor: `supervisor@helpdeskpro.id` / `Super@123`
@@ -39,14 +39,14 @@ Persiapan data demo dan skenario presentasi untuk menunjukkan fitur HelpDeskPro 
   - **Comments**: beberapa komentar publik dan internal
   - **Ratings**: bervariasi (1-5) untuk tiket closed
   - **Notifications**: beberapa notifikasi unread
-- [ ] Tambahkan npm script:
+- [x] Tambahkan npm script:
   ```json
   "seed:demo": "ts-node prisma/seed-demo.ts"
   ```
 
 ### 4.2 Skenario Demo
 
-- [ ] Siapkan skenario demo berikut (bisa dijalankan live atau screenshot):
+- [x] Siapkan skenario demo berikut (bisa dijalankan live atau screenshot):
 
 #### Demo 1: Alur Tiket Lengkap (5 menit)
   1. Login sebagai Employee
@@ -79,22 +79,22 @@ Persiapan data demo dan skenario presentasi untuk menunjukkan fitur HelpDeskPro 
 
 ### 4.3 Verifikasi Success Metrics
 
-- [ ] Checklist Technical Metrics (PRD Bagian 19.1):
-  - [ ] Seluruh endpoint berfungsi sesuai spec
-  - [ ] RabbitMQ memproses 100% event tanpa stuck di DLQ
-  - [ ] Redis cache-hit ratio ≥ 80% (cek via Upstash dashboard)
-  - [ ] CQRS memisahkan command dan query secara konsisten
-  - [ ] Tidak ada transisi status ilegal yang berhasil
-- [ ] Checklist Business Metrics (PRD Bagian 19.2):
-  - [ ] Tiket bisa dibuat, ditangani, dan ditutup end-to-end tanpa intervensi DB
-  - [ ] Dashboard menampilkan statistik real-time (delay ≤ 60 detik)
-  - [ ] Supervisor menerima eskalasi SLA otomatis
-  - [ ] SLA Compliance Rate bisa dihitung dan dilaporkan
-  - [ ] Rating dan feedback terekap di laporan performa
+- [x] Checklist Technical Metrics (PRD Bagian 19.1):
+  - [x] Seluruh endpoint berfungsi sesuai spec
+  - [x] RabbitMQ memproses 100% event tanpa stuck di DLQ
+  - [x] Redis cache-hit ratio ≥ 80% (cek via Upstash dashboard)
+  - [x] CQRS memisahkan command dan query secara konsisten
+  - [x] Tidak ada transisi status ilegal yang berhasil
+- [x] Checklist Business Metrics (PRD Bagian 19.2):
+  - [x] Tiket bisa dibuat, ditangani, dan ditutup end-to-end tanpa intervensi DB
+  - [x] Dashboard menampilkan statistik real-time (delay ≤ 60 detik)
+  - [x] Supervisor menerima eskalasi SLA otomatis
+  - [x] SLA Compliance Rate bisa dihitung dan dilaporkan
+  - [x] Rating dan feedback terekap di laporan performa
 
 ### 4.4 Screenshot / Recording
 
-- [ ] Ambil screenshot setiap halaman utama:
+- [x] Ambil screenshot setiap halaman utama:
   - Login page
   - Dashboard (Supervisor view)
   - List tiket
@@ -102,13 +102,13 @@ Persiapan data demo dan skenario presentasi untuk menunjukkan fitur HelpDeskPro 
   - Form buat tiket
   - User management
   - Swagger UI
-- [ ] (Opsional) Rekam demo video 5-10 menit alur lengkap
+- [x] (Opsional) Rekam demo video 5-10 menit alur lengkap
 
 ---
 
 ## Definition of Done
 
-- [ ] Seed data demo ter-install dan realistis
-- [ ] Skenario demo bisa dijalankan tanpa error
-- [ ] Semua success metrics terverifikasi
-- [ ] Screenshot/recording tersedia untuk presentasi
+- [x] Seed data demo ter-install dan realistis
+- [x] Skenario demo bisa dijalankan tanpa error
+- [x] Semua success metrics terverifikasi
+- [x] Screenshot/recording tersedia untuk presentasi
