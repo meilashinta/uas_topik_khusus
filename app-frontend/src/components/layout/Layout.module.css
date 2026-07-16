@@ -190,3 +190,119 @@
   flex: 1;
   overflow-y: auto;
 }
+
+/* Notification Dropdown Styles */
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationDropdown {
+  position: absolute;
+  top: 100%;
+  right: -10px;
+  width: 320px;
+  margin-top: 10px;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notificationHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.markAllBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.markAllBtn:hover {
+  text-decoration: underline;
+}
+
+.notificationList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notificationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background var(--transition-fast);
+}
+
+.notificationItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.notificationItem.unread {
+  background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.notificationContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.notificationContent strong {
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+}
+
+.notificationContent p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.timeAgo {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.readBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+}
+
+.readBtn:hover {
+  color: var(--color-success);
+  background: rgba(var(--color-success-rgb), 0.1);
+}
+
+.emptyNotification {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}

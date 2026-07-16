@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Min, IsBoolean } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdatePriorityDto {
@@ -13,4 +13,9 @@ export class UpdatePriorityDto {
   @IsInt()
   @Min(1)
   slaResolutionMinutes?: number;
+
+  @ApiPropertyOptional({ description: 'Is priority active' })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

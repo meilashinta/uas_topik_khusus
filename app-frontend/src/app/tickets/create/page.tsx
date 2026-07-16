@@ -17,7 +17,7 @@ const createSchema = z.object({
   title: z.string().min(5, 'Judul minimal 5 karakter'),
   description: z.string().min(10, 'Deskripsi minimal 10 karakter'),
   categoryId: z.string().min(1, 'Pilih kategori'),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+  priorityId: z.string(),
 });
 
 type CreateForm = z.infer<typeof createSchema>;
@@ -29,51 +29,59 @@ interface Category {
 
 export default function CreateTicketPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [priorities, setPriorities] = useState<{ id: string; name: string; level: number }[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CreateForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
-    defaultValues: { priority: 'MEDIUM' }
   });
 
   useEffect(() => {
-    if (!isAuthenticated && typeof window !== 'undefined') {
+    if (_hasHydrated && !isAuthenticated && typeof window !== 'undefined') {
       router.push('/login');
       return;
     }
-    
-    // Redirect if not EMPLOYEE (only employee can create ticket based on RBAC)
-    if (user?.role && user.role !== 'EMPLOYEE') {
-      router.push('/tickets');
+
+    if (_hasHydrated && user?.role && user.role !== 'EMPLOYEE') {
+      // Hanya EMPLOYEE yang boleh membuat tiket
+      router.push('/dashboard');
       return;
     }
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/categories');
-        setCategories(res.data.data || res.data);
+        const catRes = await api.get('/categories');
+        const prioRes = await api.get('/priorities');
+        setCategories(catRes.data.data.data || []);
+        setPriorities(prioRes.data.data || []);
       } catch (err) {
-        console.error('Failed to fetch categories', err);
+        console.error('Failed to fetch ticket metadata', err);
       }
     };
-    fetchCategories();
-  }, [isAuthenticated, user, router]);
+
+    if (_hasHydrated && isAuthenticated) {
+      fetchData();
+    }
+  }, [_hasHydrated, isAuthenticated, user, router]);
 
   const onSubmit = async (data: CreateForm) => {
     setErrorMsg('');
+    setIsSubmitting(true);
     try {
       await api.post('/tickets', data);
       router.push('/tickets');
-    } catch (err: unknown) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const error = err as any;
-      setErrorMsg(error.response?.data?.message || 'Gagal membuat tiket. Silakan coba lagi.');
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.response?.data?.message || 'Terjadi kesalahan saat membuat tiket.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (!isAuthenticated || user?.role !== 'EMPLOYEE') return null;
+  if (!_hasHydrated || !isAuthenticated || user?.role !== 'EMPLOYEE') return null;
 
   return (
     <div className={styles.container}>
@@ -88,10 +96,10 @@ export default function CreateTicketPage() {
       <div className={`${styles.formCard} glass-panel`}>
         <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
           {errorMsg && <div className={styles.alertError}>{errorMsg}</div>}
-          
-          <Input 
-            label="Judul Tiket" 
-            placeholder="Contoh: Printer di lantai 3 rusak" 
+
+          <Input
+            label="Judul Tiket"
+            placeholder="Contoh: Printer di lantai 3 rusak"
             {...register('title')}
             error={errors.title?.message}
           />
@@ -110,17 +118,19 @@ export default function CreateTicketPage() {
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>Prioritas</label>
-              <select className={styles.select} {...register('priority')}>
-                <option value="LOW">Rendah (Low)</option>
-                <option value="MEDIUM">Sedang (Medium)</option>
-                <option value="HIGH">Tinggi (High)</option>
+              <select className={`${styles.select} ${errors.priorityId ? styles.hasError : ''}`} {...register('priorityId')}>
+                <option value="">-- Pilih Prioritas --</option>
+                {priorities.map(priority => (
+                  <option key={priority.id} value={priority.id}>{priority.name}</option>
+                ))}
               </select>
+              {errors.priorityId && <span className={styles.errorText}>{errors.priorityId.message}</span>}
             </div>
           </div>
 
           <div className={styles.inputGroup}>
             <label className={styles.label}>Deskripsi Masalah</label>
-            <textarea 
+            <textarea
               className={`${styles.textarea} ${errors.description ? styles.hasError : ''}`}
               placeholder="Jelaskan detail masalah, kapan terjadinya, dan pesan error yang muncul (jika ada)..."
               rows={6}

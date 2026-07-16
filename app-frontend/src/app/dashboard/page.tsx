@@ -32,22 +32,19 @@ ChartJS.register(
 );
 
 export default function DashboardPage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [trendData, setTrendData] = useState<any>(null);
+  const [slaData, setSlaData] = useState<any>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated && typeof window !== 'undefined') {
+    if (_hasHydrated && !isAuthenticated && typeof window !== 'undefined') {
       router.push('/login');
     }
-  }, [isAuthenticated, router, mounted]);
+  }, [isAuthenticated, router, _hasHydrated]);
 
-  if (!mounted || !isAuthenticated) return null;
+  if (!_hasHydrated || !isAuthenticated) return null;
 
   // Mock data for presentation based on UI plan
   const lineChartData = {
@@ -155,13 +152,13 @@ export default function DashboardPage() {
         <div className={`${styles.chartCard} glass-panel`}>
           <h3>Distribusi Prioritas</h3>
           <div className={styles.chartWrapper}>
-            <Doughnut 
-              data={doughnutData} 
-              options={{ 
-                responsive: true, 
+            <Doughnut
+              data={doughnutData}
+              options={{
+                responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } 
-              }} 
+                plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+              }}
             />
           </div>
         </div>

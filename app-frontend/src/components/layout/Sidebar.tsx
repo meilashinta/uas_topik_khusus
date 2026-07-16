@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -16,9 +18,25 @@ export const Sidebar: React.FC = () => {
     { name: 'Settings', path: '/settings', icon: <FiSettings />, roles: ['ADMINISTRATOR'] },
   ];
 
+  const userRole = user?.role ? (typeof user.role === 'object' ? (user.role as any).name : user.role) : '';
   const filteredMenu = menuItems.filter(item => 
-    user && item.roles.includes(user.role)
+    user && item.roles.includes(userRole)
   );
+
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <h1 className="text-gradient">HelpDeskPro</h1>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className={styles.sidebar}>

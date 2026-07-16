@@ -29,7 +29,7 @@ export class UsersController {
     return this.usersService.updateProfile(req.user.userId, updateProfileDto);
   }
 
-  @Roles(RoleName.ADMINISTRATOR)
+  @Roles(RoleName.ADMINISTRATOR, RoleName.SUPERVISOR)
   @Get()
   @ApiOperation({ summary: 'Get list of users (Admin only)' })
   @ApiResponse({ status: 200, description: 'Return users list' })

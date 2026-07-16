@@ -1,0 +1,127 @@
+.navContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.navItem {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.navItem.active {
+  color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.1);
+  box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.contentContainer {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Common styles for settings pages */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.dataTable th {
+  text-align: left;
+  padding: 1rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dataTable td {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dataTable tr td:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.dataTable tr td:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.actionCell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.actionBtn.danger:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: rgba(0,0,0,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}

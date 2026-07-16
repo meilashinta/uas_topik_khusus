@@ -11,7 +11,7 @@ export class ActivityWorkerService implements OnModuleInit {
   constructor(
     private readonly rabbitmqService: RabbitMQService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     setTimeout(() => {
@@ -23,18 +23,18 @@ export class ActivityWorkerService implements OnModuleInit {
 
   private async handleMessage(msg: ConsumeMessage | null) {
     if (!msg) return;
-    
+
     const routingKey = msg.fields.routingKey;
     const content = msg.content.toString();
-    
+
     try {
       const payload = JSON.parse(content);
       const eventId = payload.eventId || msg.properties.messageId || `${routingKey}-${Date.now()}`;
-      
+
       this.logger.log(`Received event for activity log: ${routingKey}`);
 
       let action: string = routingKey.toUpperCase().replace(/\./g, '_');
-      
+
       // We will perform a transaction to insert into ActivityLog and TicketHistory (if applicable)
       await this.prisma.$transaction(async (tx) => {
         // Check idempotency on ActivityLog
@@ -45,7 +45,7 @@ export class ActivityWorkerService implements OnModuleInit {
         }
 
         const userId = payload.changedBy || payload.assignedBy || payload.createdById || payload.resolvedBy || payload.closedBy || payload.rejectedBy || payload.userId || null;
-        
+
         await tx.activityLog.create({
           data: {
             action,
@@ -58,22 +58,11 @@ export class ActivityWorkerService implements OnModuleInit {
           }
         });
 
-        // Insert into TicketHistory if it relates to status change or assignment
-        // Since we don't have eventId in TicketHistory, we rely on the transaction with ActivityLog for idempotency
-        if (routingKey === 'ticket.status_changed' || routingKey === 'ticket.resolved' || routingKey === 'ticket.closed' || routingKey === 'ticket.rejected') {
-          await tx.ticketHistory.create({
-            data: {
-              ticketId: payload.ticketId,
-              fromStatus: payload.oldStatus,
-              toStatus: payload.status || routingKey.split('.')[1].toUpperCase(),
-              changedById: userId,
-              note: payload.reason || payload.note || null,
-            }
-          });
-        }
+        // Note: TicketHistory is handled synchronously in tickets.service.ts to ensure immediate UI consistency.
       });
-      
+
     } catch (error: any) {
+      console.error('ACTIVITY WORKER ERROR:', error);
       this.logger.error(`Failed to process message: ${content}`, error);
       throw error; // Let the dead letter exchange handle it after retries
     }

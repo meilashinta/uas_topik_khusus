@@ -54,6 +54,15 @@
   background: var(--color-surface);
 }
 
+.btn-success {
+  background: var(--color-success);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
 /* Sizes */
 .btn-sm {
   padding: 0.375rem 0.75rem;

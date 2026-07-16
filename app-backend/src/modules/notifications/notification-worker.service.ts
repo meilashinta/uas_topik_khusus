@@ -70,6 +70,7 @@ export class NotificationWorkerService implements OnModuleInit {
           this.logger.warn(`Unhandled routing key: ${routingKey}`);
       }
     } catch (error) {
+      console.error('NOTIFICATION WORKER ERROR:', error);
       this.logger.error(`Failed to process message: ${content}`, error);
       throw error; // Will be sent to DLQ by RabbitMQService
     }
@@ -93,9 +94,15 @@ export class NotificationWorkerService implements OnModuleInit {
   private async handleTicketCreated(payload: any, eventId: string) {
     const { ticketId, ticketNumber, categoryId, departmentId, createdBy } = payload;
     
+    let depId = departmentId;
+    if (!depId && categoryId) {
+      const category = await this.prisma.ticketCategory.findUnique({ where: { id: categoryId } });
+      if (category) depId = category.departmentId;
+    }
+
     // Notify supervisors of the department
     const supervisors = await this.prisma.user.findMany({
-      where: { departmentId, role: { name: 'SUPERVISOR' }, isActive: true }
+      where: { departmentId: depId || undefined, role: { name: 'SUPERVISOR' }, isActive: true }
     });
 
     const title = `Tiket Baru: #${ticketNumber}`;

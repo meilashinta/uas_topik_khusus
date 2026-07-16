@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
@@ -15,46 +15,62 @@ interface Ticket {
   id: string;
   title: string;
   status: string;
-  priority: string;
+  priority: { name: string };
   category: { name: string };
-  author: { name: string };
+  createdBy: { name: string };
   createdAt: string;
 }
 
 export default function TicketsPage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState({
+    status: '',
+    priorityId: '',
+    categoryId: ''
+  });
 
-  const fetchTickets = async () => {
-    setIsLoading(true);
+  const fetchTickets = useCallback(async () => {
     try {
-      const res = await api.get('/tickets');
-      // The API returns { data: [...], meta: {...} } based on our backend implementation
-      setTickets(res.data.data || res.data);
-    } catch (error) {
-      console.error('Failed to fetch tickets', error);
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (filter.status) params.append('status', filter.status);
+      if (filter.priorityId) params.append('priorityId', filter.priorityId);
+      if (filter.categoryId) params.append('categoryId', filter.categoryId);
+
+      const res = await api.get(`/tickets?${params.toString()}`);
+      setTickets(res.data.data?.data || res.data.data || []);
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filter]);
 
   useEffect(() => {
-    if (!isAuthenticated && typeof window !== 'undefined') {
+    if (_hasHydrated && !isAuthenticated && typeof window !== 'undefined') {
       router.push('/login');
       return;
     }
-    
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (_hasHydrated && isAuthenticated) {
+      fetchTickets();
+    }
+  }, [isAuthenticated, router, fetchTickets, _hasHydrated]);
+
+  // Handle manual refetch
+  const handleRefresh = () => {
     fetchTickets();
-  }, [isAuthenticated, router]);
+  };
+
+  if (!_hasHydrated || !isAuthenticated) return null;
 
   const getStatusVariant = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'OPEN': return 'info';
       case 'IN_PROGRESS': return 'warning';
-      case 'RESOLVED': 
+      case 'RESOLVED':
       case 'CLOSED': return 'success';
       case 'REJECTED': return 'danger';
       default: return 'default';
@@ -62,7 +78,7 @@ export default function TicketsPage() {
   };
 
   const getPriorityVariant = (priority: string) => {
-    switch(priority) {
+    switch (priority) {
       case 'HIGH': return 'danger';
       case 'MEDIUM': return 'warning';
       case 'LOW': return 'info';
@@ -79,7 +95,7 @@ export default function TicketsPage() {
           <h1 className="text-gradient">Daftar Tiket</h1>
           <p className={styles.subtitle}>Kelola dan pantau semua permintaan layanan IT.</p>
         </div>
-        
+
         {user?.role === 'EMPLOYEE' && (
           <Link href="/tickets/create">
             <Button className={styles.createBtn}>
@@ -131,10 +147,10 @@ export default function TicketsPage() {
                     </td>
                     <td className={styles.ticketTitle}>{ticket.title}</td>
                     <td>{ticket.category?.name || '-'}</td>
-                    <td>{ticket.author?.name || '-'}</td>
+                    <td>{ticket.createdBy?.name || '-'}</td>
                     <td>
-                      <Badge variant={getPriorityVariant(ticket.priority)}>
-                        {ticket.priority}
+                      <Badge variant={getPriorityVariant(ticket.priority.name)}>
+                        {ticket.priority.name}
                       </Badge>
                     </td>
                     <td>

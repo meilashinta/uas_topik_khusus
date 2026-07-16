@@ -214,7 +214,7 @@ export class TicketsService {
     });
 
     await this.auditLogService.logAction('TICKET_REJECTED', 'Ticket', rejectedTicket.id, user.userId, { reason: rejectDto.reason }, req);
-    this.eventPublisher.publishTicketEvent('ticket.rejected', { eventType: 'TicketRejected', ticketId: rejectedTicket.id, ticketNumber: rejectedTicket.ticketNumber } as any);
+    this.eventPublisher.publishTicketEvent('ticket.rejected', { eventType: 'TicketRejected', ticketId: rejectedTicket.id, ticketNumber: rejectedTicket.ticketNumber, rejectedBy: user.userId, reason: rejectDto.reason } as any);
     await this.redisService.del(`ticket:${id}`);
     return rejectedTicket;
   }
@@ -237,7 +237,7 @@ export class TicketsService {
     });
 
     await this.auditLogService.logAction('TICKET_CLOSED', 'Ticket', closedTicket.id, user.userId, { rating: closeDto.rating }, req);
-    this.eventPublisher.publishTicketEvent('ticket.closed', { eventType: 'TicketClosed', ticketId: closedTicket.id, ticketNumber: closedTicket.ticketNumber } as any);
+    this.eventPublisher.publishTicketEvent('ticket.closed', { eventType: 'TicketClosed', ticketId: closedTicket.id, ticketNumber: closedTicket.ticketNumber, closedBy: user.userId } as any);
     await this.redisService.del(`ticket:${id}`);
     return closedTicket;
   }
@@ -259,7 +259,7 @@ export class TicketsService {
     });
 
     await this.auditLogService.logAction('TICKET_REOPENED', 'Ticket', reopenedTicket.id, user.userId, { reason: reopenDto.reason }, req);
-    this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketReopened', ticketId: reopenedTicket.id, ticketNumber: reopenedTicket.ticketNumber } as any);
+    this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketReopened', ticketId: reopenedTicket.id, ticketNumber: reopenedTicket.ticketNumber, status: reopenedTicket.status, changedBy: user.userId } as any);
 
     // Future logic: Send notification to assigned technicians
     // ...
@@ -292,9 +292,9 @@ export class TicketsService {
     await this.auditLogService.logAction('TICKET_STATUS_UPDATED', 'Ticket', updatedTicket.id, user.userId, { status: updateStatusDto.status }, req);
     
     if (updateStatusDto.status === TicketStatus.RESOLVED) {
-      this.eventPublisher.publishTicketEvent('ticket.resolved', { eventType: 'TicketResolved', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber } as any);
+      this.eventPublisher.publishTicketEvent('ticket.resolved', { eventType: 'TicketResolved', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber, resolvedBy: user.userId } as any);
     } else {
-      this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketStatusUpdated', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber } as any);
+      this.eventPublisher.publishTicketEvent('ticket.status_changed', { eventType: 'TicketStatusUpdated', ticketId: updatedTicket.id, ticketNumber: updatedTicket.ticketNumber, status: updatedTicket.status, changedBy: user.userId } as any);
     }
     
     await this.redisService.del(`ticket:${id}`);
@@ -353,7 +353,7 @@ export class TicketsService {
     });
 
     await this.auditLogService.logAction('TICKET_ASSIGNED', 'Ticket', assignedTicket.id, user.userId, { technicianId: assignDto.technicianId }, req);
-    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketAssigned', ticketId: assignedTicket.id, ticketNumber: assignedTicket.ticketNumber, assignedTo: assignDto.technicianId, assignedBy: user.userId, priority: ticket.priority.name, slaDueAt: slaDueAt.toISOString() } as any);
+    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketAssigned', ticketId: assignedTicket.id, ticketNumber: assignedTicket.ticketNumber, assigneeId: assignDto.technicianId, assignedBy: user.userId, priority: ticket.priority.name, slaDueAt: slaDueAt.toISOString() } as any);
     await this.redisService.del(`ticket:${id}`);
     return assignedTicket;
   }
@@ -407,7 +407,7 @@ export class TicketsService {
     });
 
     await this.auditLogService.logAction('TICKET_REASSIGNED', 'Ticket', reassignedTicket.id, user.userId, { technicianId: reassignDto.technicianId, reason: reassignDto.reason }, req);
-    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketReassigned', ticketId: reassignedTicket.id, ticketNumber: reassignedTicket.ticketNumber, assignedTo: reassignDto.technicianId, assignedBy: user.userId } as any);
+    this.eventPublisher.publishTicketEvent('ticket.assigned', { eventType: 'TicketReassigned', ticketId: reassignedTicket.id, ticketNumber: reassignedTicket.ticketNumber, assigneeId: reassignDto.technicianId, assignedBy: user.userId } as any);
     await this.redisService.del(`ticket:${id}`);
     return reassignedTicket;
   }

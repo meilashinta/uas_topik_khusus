@@ -4,7 +4,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-@Controller('notifications')
+@Controller('api/v1/notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

@@ -32,16 +32,20 @@ export default function LoginPage() {
     try {
       // 1. Send Login Request
       const response = await api.post('/auth/login', data);
-      const { access_token } = response.data;
+      const { accessToken } = response.data.data || response.data;
       
       // 2. Save Token
-      localStorage.setItem('accessToken', access_token);
+      localStorage.setItem('accessToken', accessToken);
       
-      // 3. Fetch User Profile
-      const profileRes = await api.get('/auth/profile');
+      // 3. Get User Profile
+      const profileRes = await api.get('/users/me');
       
       // 4. Save to Store and Redirect
-      setUser(profileRes.data);
+      const userProfile = profileRes.data.data || profileRes.data;
+      if (userProfile.role && typeof userProfile.role === 'object') {
+        userProfile.role = userProfile.role.name;
+      }
+      setUser(userProfile);
       router.push('/dashboard');
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

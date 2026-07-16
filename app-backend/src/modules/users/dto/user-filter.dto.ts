@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsUUID, IsBoolean, isString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { Transform } from 'class-transformer';
@@ -8,6 +8,11 @@ export class UserFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   roleId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by Role' })
+  @IsOptional()
+  @IsString()
+  role?: string;
 
   @ApiPropertyOptional({ description: 'Filter by Department ID' })
   @IsOptional()

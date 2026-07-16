@@ -471,6 +471,15 @@
             }
           },
           {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Filter by Role",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "departmentId",
             "required": false,
             "in": "query",
@@ -2081,7 +2090,7 @@
         ]
       }
     },
-    "/notifications": {
+    "/api/v1/notifications": {
       "get": {
         "operationId": "NotificationsController_getNotifications",
         "parameters": [
@@ -2134,7 +2143,7 @@
         ]
       }
     },
-    "/notifications/read-all": {
+    "/api/v1/notifications/read-all": {
       "patch": {
         "operationId": "NotificationsController_markAllAsRead",
         "parameters": [],
@@ -2154,7 +2163,7 @@
         ]
       }
     },
-    "/notifications/{id}/read": {
+    "/api/v1/notifications/{id}/read": {
       "patch": {
         "operationId": "NotificationsController_markAsRead",
         "parameters": [
@@ -3042,6 +3051,10 @@
           "slaResolutionMinutes": {
             "type": "number",
             "description": "Resolution SLA in minutes"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Is priority active"
           }
         }
       },

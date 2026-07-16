@@ -21,10 +21,11 @@ export class UsersService {
   ) {}
 
   async findAll(filterDto: UserFilterDto) {
-    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', roleId, departmentId, isActive, search } = filterDto;
+    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', roleId, role, departmentId, isActive, search } = filterDto;
 
     const where: Prisma.UserWhereInput = {};
     if (roleId) where.roleId = roleId;
+    if (role) where.role = { name: role as any };
     if (departmentId) where.departmentId = departmentId;
     if (isActive !== undefined) where.isActive = isActive;
     if (search) {
@@ -113,9 +114,11 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(createDto.password, 10);
 
+    const { password, ...userData } = createDto;
+
     const newUser = await this.prisma.user.create({
       data: {
-        ...createDto,
+        ...userData,
         passwordHash: hashedPassword,
       },
       select: {

@@ -5,13 +5,14 @@
 HelpDeskPro adalah aplikasi **Sistem Manajemen Layanan IT (ITSM)** berbasis web yang membantu organisasi mengelola siklus hidup permintaan bantuan (*ticket*) secara *end-to-end* dengan dukungan *Role-Based Access Control* (RBAC) dan *Service Level Agreement* (SLA).
 
 ## ✨ Fitur Utama
-- **Role-Based Access Control (RBAC):** Memisahkan akses antara Employee (Karyawan), Technician (Teknisi), Supervisor, dan Administrator.
+- **Role-Based Access Control (RBAC):** Memisahkan akses antara Employee (Karyawan), Technician (Teknisi), Supervisor, dan Administrator. Dasbor dan data otomatis disesuaikan (*dynamic filtering*) berdasarkan *role* yang sedang aktif.
 - **SLA Management & Escalation:** Sistem target penyelesaian yang dihitung otomatis berdasarkan prioritas, beserta notifikasi *warning* dan eskalasi.
 - **Ticket Lifecycle:** Pelacakan tiket dari *Open*, *In Progress*, *Resolved*, hingga *Closed* (dengan kemampuan *Reopen* dan *Reject*).
+- **Master Data Management:** Pengaturan Kategori, Departemen, Prioritas, dan Pengguna dengan dukungan *soft-delete*, aktivasi ulang (*reactivation*), serta UI/UX *Modal* tanpa *native alert*.
 - **Audit & History:** Pencatatan otomatis riwayat perubahan tiket tanpa kompromi.
 - **File Attachments:** Dukungan lampiran *file* dengan validasi MIME & batas ukuran untuk bukti atau tangkapan layar.
 - **Comments & Rating:** Komunikasi antar *user* dan sistem penentuan kepuasan layanan di akhir penyelesaian.
-- **Reporting & Dashboard:** Dasbor metrik *real-time* dan kemampuan *export* laporan (*PDF* & *Excel*).
+- **Reporting & Dashboard:** Dasbor metrik *real-time* dengan UI modern bergaya *Glassmorphism* dan kemampuan *export* laporan (*PDF* & *Excel*).
 
 ## 🛠️ Tech Stack
 - **Backend Framework:** NestJS (TypeScript), Express
